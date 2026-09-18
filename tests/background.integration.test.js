@@ -133,3 +133,15 @@ test('unconfigured startup opens the onboarding page as a fallback', async () =>
   assert.equal(harness.createdTabs.length, 1);
   assert.equal(harness.createdTabs[0].url, 'chrome-extension://test/src/onboarding.html');
 });
+
+test('comment totals accumulate across pages independently from page metrics', async () => {
+  const harness = createBackgroundHarness();
+  const E = require('../src/shared/core.js');
+  await harness.dispatch({ type: E.MESSAGE.RECORD_COMMENT_EVENT, payload: { action: 'checked', page: { checked: 1, hidden: 0 } } });
+  await harness.dispatch({ type: E.MESSAGE.RECORD_COMMENT_EVENT, payload: { action: 'hidden', page: { checked: 1, hidden: 1 } } });
+  const state = await harness.dispatch({ type: E.MESSAGE.GET_STATE });
+  assert.equal(state.stats.totalChecked, 1);
+  assert.equal(state.stats.totalHidden, 1);
+  assert.equal(state.stats.pageChecked, 1);
+  assert.equal(state.stats.pageHidden, 1);
+});

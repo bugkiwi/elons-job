@@ -59,7 +59,7 @@
   const DEFAULT_CONFIG = {
     enabled: true,
     onboardingCompleted: false,
-    rulesVersion: 2,
+    rulesVersion: 3,
     commentsOnly: true,
     failOpen: true,
     preload: false,
@@ -68,7 +68,7 @@
     showCheckControls: true,
     maxConcurrency: 3,
     cacheTtlHours: 24,
-    dailyLimit: 2000,
+    dailyLimit: 100000,
     debug: false,
     model: MODEL_VERSION,
     apiEndpoint: API_ENDPOINT,
@@ -130,10 +130,11 @@
       const legacyThreshold = Number(raw.rulesVersion || 0) < 2 && ['sexual_content', 'sexual_solicitation'].includes(rule.id) && rule.threshold === 0.8;
       return { ...clone(builtin), enabled: rule.enabled, threshold: legacyThreshold ? builtin.threshold : rule.threshold };
     });
+    const legacyDailyLimit = Number(raw.rulesVersion || 0) < 3 && Number(raw.dailyLimit) === 2000;
     return {
       enabled: raw.enabled !== false,
       onboardingCompleted: raw.onboardingCompleted === true,
-      rulesVersion: 2,
+      rulesVersion: 3,
       commentsOnly: raw.commentsOnly !== false,
       failOpen: raw.failOpen !== false,
       preload: raw.preload === true,
@@ -142,7 +143,7 @@
       showCheckControls: raw.showCheckControls !== false,
       maxConcurrency: clamp(Number(raw.maxConcurrency) || 3, 1, 8),
       cacheTtlHours: clamp(Number(raw.cacheTtlHours) || 24, 1, 168),
-      dailyLimit: clamp(Number(raw.dailyLimit) || 2000, 1, 100000),
+      dailyLimit: legacyDailyLimit ? 100000 : clamp(Number(raw.dailyLimit) || 100000, 1, 100000),
       debug: raw.debug === true,
       model: String(raw.model || MODEL_VERSION).slice(0, 80),
       apiEndpoint: String(raw.apiEndpoint || API_ENDPOINT),
@@ -475,14 +476,18 @@
     const today = new Date().toISOString().slice(0, 10);
     const stored = await storageGet(chromeApi, 'local', STATS_KEY);
     const stats = stored[STATS_KEY] || {};
+    const totalChecked = Number(stats.totalChecked ?? stats.checked) || 0;
+    const totalHidden = Number(stats.totalHidden ?? stats.hidden) || 0;
     if (stats.day !== today) {
-      return { day: today, requests: 0, checked: 0, hidden: 0, cacheHits: 0, errors: 0, latencyMs: 0, lastError: '', pageChecked: 0, pageHidden: 0, pageSafe: 0, pagePending: 0, pageErrors: 0, pageLatencyMs: 0 };
+      return { day: today, requests: 0, checked: 0, hidden: 0, totalChecked, totalHidden, cacheHits: 0, errors: 0, latencyMs: 0, lastError: '', pageChecked: 0, pageHidden: 0, pageSafe: 0, pagePending: 0, pageErrors: 0, pageLatencyMs: 0 };
     }
     return {
       day: today,
       requests: Number(stats.requests) || 0,
       checked: Number(stats.checked) || 0,
       hidden: Number(stats.hidden) || 0,
+      totalChecked,
+      totalHidden,
       cacheHits: Number(stats.cacheHits) || 0,
       errors: Number(stats.errors) || 0,
       latencyMs: Number(stats.latencyMs) || 0,

@@ -20,7 +20,10 @@ importScripts('shared/core.js');
       for (const key of ['requests', 'cacheHits', 'errors', 'checked', 'hidden']) {
         const deltaKey = `${key}Delta`;
         if (Object.prototype.hasOwnProperty.call(next, deltaKey)) {
-          next[key] = current[key] + Number(next[deltaKey] || 0);
+          const delta = Number(next[deltaKey] || 0);
+          next[key] = current[key] + delta;
+          if (key === 'checked') next.totalChecked = current.totalChecked + delta;
+          if (key === 'hidden') next.totalHidden = current.totalHidden + delta;
           delete next[deltaKey];
         }
       }

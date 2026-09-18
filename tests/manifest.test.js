@@ -68,6 +68,11 @@ test('popup puts first-time API setup before telemetry and uses the TypeSafe key
 test('popup status metrics stay compact and horizontal on the narrow popup viewport', () => {
   const popup = fs.readFileSync(path.join(root, 'src/popup.html'), 'utf8');
   const css = fs.readFileSync(path.join(root, 'src/styles/app.css'), 'utf8');
+  const popupScript = fs.readFileSync(path.join(root, 'src/popup.js'), 'utf8');
+  assert.match(popup, /累计已检查/);
+  assert.match(popup, /累计已隐藏/);
+  assert.match(popupScript, /stats\.totalChecked/);
+  assert.match(popupScript, /stats\.totalHidden/);
   assert.match(popup, /class="ew-card ew-card-pad ew-popup-status"/);
   assert.equal(css.includes('body.ew-popup .ew-popup-status .ew-grid-3 { grid-template-columns: repeat(3'), true);
 });

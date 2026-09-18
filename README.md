@@ -13,6 +13,20 @@ npm run benchmark
 
 打开 `chrome://extensions`，开启“开发者模式”，点击“加载已解压的扩展程序”，选择 `dist/`。第一次安装会自动打开 onboarding。
 
+## 效果预览
+
+<p align="center">
+  <img src="docs/screenshots/comment-filtering.png" alt="X 评论区过滤效果" width="720">
+</p>
+
+命中的评论会被替换为可恢复的隐藏占位符；设置中心默认将每日 TypeSafe 请求上限设为 100,000，并提供缓存、并发和成本保护。
+
+过滤规则支持自定义：可以编辑规则名称、隐藏条件、排除条件和敏感度，用于适配不同社区的内容治理需求。
+
+<p align="center">
+  <img src="docs/screenshots/custom-rule-editor.png" alt="自定义评论过滤规则编辑器" width="720">
+</p>
+
 ## 安全边界
 
 - API Key 只由 service worker 读取，存于 `chrome.storage.local`；popup、设置页只通过消息协议保存/测试。

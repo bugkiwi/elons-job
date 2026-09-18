@@ -10,7 +10,15 @@ test('default configuration exposes three enabled builtin rules', () => {
   assert.ok(config.rules[1].enabled && config.rules[1].builtin && config.rules[1].threshold === 0.75);
   assert.equal(config.rules[2].threshold, 0.78);
   assert.equal(config.showCheckControls, true);
+  assert.equal(config.dailyLimit, 100000);
   assert.equal(E.activeRules(config).length, 3);
+});
+
+test('migrates the legacy default daily limit to 100000', () => {
+  const config = E.normalizeConfig({ rulesVersion: 2, dailyLimit: 2000 });
+  assert.equal(config.rulesVersion, 3);
+  assert.equal(config.dailyLimit, 100000);
+  assert.equal(E.normalizeConfig({ rulesVersion: 3, dailyLimit: 2000 }).dailyLimit, 2000);
 });
 
 test('normalizeText removes zero-width characters and whitespace only while preserving signals', () => {
