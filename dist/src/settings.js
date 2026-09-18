@@ -47,7 +47,7 @@
     const config = state.config; const stats = state.stats;
     $('headerStatus').innerHTML = state.hasApiKey ? '<span class="ew-dot"></span> 防护已就绪' : '<span class="ew-dot warn"></span> 需要 API Key';
     $('enabledToggle').checked = config.enabled; $('commentsOnlyToggle').checked = config.commentsOnly; $('failOpenToggle').checked = config.failOpen;
-    $('placeholderToggle').checked = config.showPlaceholder; $('confidenceToggle').checked = config.showConfidence; $('preloadToggle').checked = config.preload; $('debugToggle').checked = config.debug;
+    $('placeholderToggle').checked = config.showPlaceholder; $('checkControlsToggle').checked = config.showCheckControls; $('confidenceToggle').checked = config.showConfidence; $('preloadToggle').checked = config.preload; $('debugToggle').checked = config.debug;
     $('apiKeyField').value = state.apiKeyMask || '';
     $('apiBadge').textContent = state.hasApiKey ? `CONNECTED${stats.latencyMs ? ` · ${stats.latencyMs}ms` : ''}` : 'NOT CONNECTED'; $('apiBadge').className = `ew-chip ${state.hasApiKey ? 'green' : 'amber'}`;
     $('sideHiddenCount').textContent = String(stats.hidden || 0);
@@ -72,6 +72,7 @@
   $('commentsOnlyToggle').addEventListener('change', (event) => persist({ commentsOnly: event.target.checked }));
   $('failOpenToggle').addEventListener('change', (event) => persist({ failOpen: event.target.checked }));
   $('placeholderToggle').addEventListener('change', (event) => persist({ showPlaceholder: event.target.checked }));
+  $('checkControlsToggle').addEventListener('change', (event) => persist({ showCheckControls: event.target.checked }));
   $('confidenceToggle').addEventListener('change', (event) => persist({ showConfidence: event.target.checked }));
   $('preloadToggle').addEventListener('change', (event) => persist({ preload: event.target.checked }));
   $('debugToggle').addEventListener('change', (event) => persist({ debug: event.target.checked }));

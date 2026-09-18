@@ -9,12 +9,18 @@ test('default configuration exposes three enabled builtin rules', () => {
   assert.ok(config.rules[0].enabled && config.rules[0].builtin && config.rules[0].threshold === 0.65);
   assert.ok(config.rules[1].enabled && config.rules[1].builtin && config.rules[1].threshold === 0.75);
   assert.equal(config.rules[2].threshold, 0.78);
+  assert.equal(config.showCheckControls, true);
   assert.equal(E.activeRules(config).length, 3);
 });
 
 test('normalizeText removes zero-width characters and whitespace only while preserving signals', () => {
   const source = '  骚\u200b🖤❤️  1789699386154\nhttps://x.com/a  ';
   assert.equal(E.normalizeText(source), '骚🖤❤️ 1789699386154 https://x.com/a');
+});
+
+test('normalizeText removes the broader invisible-character table', () => {
+  const dirty = '\u200d比\u2060\u2060\u200c\u2060\u2060我\u200d\u2060\u200c\u200c\u200d好\u200c\u200d\u200c\u2060\u200c\u200c的\u200c\u2060\u200c\u2060\u200d没\u200d\u200d\u2060\u200d\u200c我\u200c\u200d骚\u2060\u2060\u2060\u2060\u200c\u2060\u200d😟\u200c\u200c\u200c\u2060比\u200c\u200c\u2060\u200c\u2060\u200c\u200d我\u200d\u200d\u2060骚\u200d\u200d\u200d\u200c\u200c的\u200c\u2060\u200d\u200d没\u200c\u200c\u2060我\u200c\u200c\u200d\u200c好\u200c\u200c\u200d看\u200c\u200c\u2060\u200c🌀\u2060\u200c';
+  assert.equal(E.normalizeText(dirty), '比我好的没我骚😟比我骚的没我好看🌀');
 });
 
 test('comment extraction and TypeSafe content include the display name and handle', () => {
@@ -75,6 +81,37 @@ test('repeated emoji template forces the spam rule into the hide decision', () =
   assert.equal(result.shouldHide, true);
   assert.equal(result.matches[0].ruleId, 'spam_behavior');
   assert.equal(result.matches[0].source, 'page-template-signal');
+});
+
+test('emoji substitutions share one page template fingerprint', () => {
+  assert.equal(
+    E.templateFingerprint('没人比我玩的开了吧🐼我福不黑不信你看🐵'),
+    E.templateFingerprint('没人比我玩的开了吧🍂我福不黑不信你看⛺')
+  );
+});
+
+test('emoji variation selectors do not split equivalent templates', () => {
+  assert.equal(
+    E.templateFingerprint('没人比我玩的开了吧🐼我福不黑不信你看🐵'),
+    E.templateFingerprint('没人比我玩的开了吧🏙️🦐我福不黑不信你看')
+  );
+});
+
+test('spam score alone does not hide a plain single comment', () => {
+  const spamRule = E.DEFAULT_RULES.find((rule) => rule.id === 'spam_behavior');
+  const result = E.buildDecision({ answers: { spam_behavior: { noul: 0.99 } } }, [spamRule], { content: '我发的不是普通内容，想看完整版就进群。' });
+  assert.equal(result.shouldHide, false);
+});
+
+test('invisible-character pollution is a spam signal after the text is cleaned', () => {
+  const spamRule = E.DEFAULT_RULES.find((rule) => rule.id === 'spam_behavior');
+  const dirty = '\u200d比\u2060我\u200c骚😟\u2060比\u200d我骚🌀';
+  const content = E.composeComment({ text: dirty });
+  const result = E.buildDecision({ answers: { spam_behavior: { noul: 0.1 } } }, [spamRule], { content });
+  assert.match(content, /invisible_char_count=5/);
+  assert.match(content, /比我骚😟比我骚🌀/);
+  assert.equal(result.localSignals.spam.matched, true);
+  assert.equal(result.shouldHide, true);
 });
 
 test('emoji-obfuscated representative sexual phrase forces the sexual rule', () => {

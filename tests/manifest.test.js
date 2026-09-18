@@ -50,6 +50,8 @@ test('X-injected CSS is scoped to extension placeholder classes', () => {
 test('content inspection sends username and supports force recheck controls', () => {
   const source = fs.readFileSync(path.join(root, 'src/content.js'), 'utf8');
   assert.match(source, /E\.composeComment\(comment\)/);
+  assert.match(source, /querySelector\(E\.SELECTORS\.userName\)/);
+  assert.match(source, /setControlsSuppressed\(article, true\)/);
   assert.match(source, /force: Boolean\(opts\.force\)/);
   assert.match(source, /E\.MESSAGE\.OPEN_SETTINGS/);
 });
@@ -59,6 +61,8 @@ test('popup puts first-time API setup before telemetry and uses the TypeSafe key
   assert.ok(popup.indexOf('id="connectPanel"') < popup.indexOf('id="statusTitle"'));
   assert.match(popup, /placeholder="apikey_…"/);
   assert.match(fs.readFileSync(path.join(root, 'src/onboarding.html'), 'utf8'), /placeholder="apikey_…"/);
+  assert.match(fs.readFileSync(path.join(root, 'src/settings.html'), 'utf8'), /id="checkControlsToggle"/);
+  assert.match(fs.readFileSync(path.join(root, 'src/settings.js'), 'utf8'), /showCheckControls/);
 });
 
 test('popup status metrics stay compact and horizontal on the narrow popup viewport', () => {

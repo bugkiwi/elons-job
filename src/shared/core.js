@@ -47,8 +47,8 @@
       id: 'spam_behavior',
       name: '垃圾评论 / 模板刷屏',
       description: '隐藏重复模板、低质批量评论、异常 emoji 组合和引流式刷屏内容。',
-      instructions: '判断 `content` 是否为垃圾评论、批量模板刷屏或低质互动诱导。优先使用页面重复信号：`page_template_matches` 大于 1 表示去掉 emoji/标点后存在近重复评论，是强信号。还要结合模板化祝福、语义空泛、异常 emoji 组合或反复诱导互动；至少两个信号共同出现才判 true。单条正常祝福、自然对话或一两个 emoji 不算 spam。',
-      trueCriteria: '页面近重复模板与低质空泛、异常 emoji、互动诱导或批量生成特征同时出现；重复模板是核心信号。',
+      instructions: '判断 `content` 是否为垃圾评论、批量模板刷屏或低质互动诱导。`page_template_matches >= 2` 是强信号：去掉 emoji、标点和可替换 token 后句式重复时，即使表面是祝福或普通中文也判 true。`invisible_char_count >= 3` 且伴随 emoji 或模板结构时，也判为故意污染/规避检测。重点识别复制粘贴骨架、随机 emoji 插入、空泛互动诱导和批量生成；单条自然评论、孤立 emoji 或单个不可见字符不算 spam。',
+      trueCriteria: '去掉 emoji/标点/可替换 token 后的页面近重复句式，随机替换 emoji 的复制模板，或多个不可见字符污染与 emoji/模板结构同时出现；也可结合低质空泛、互动诱导、批量生成特征。',
       falseCriteria: '一次性正常评论、具体观点、真实对话、普通祝福或自然使用 emoji；没有重复/模板证据时不要仅凭短句或 emoji 判 spam。',
       threshold: 0.78,
       enabled: true,
@@ -65,6 +65,7 @@
     preload: false,
     showPlaceholder: true,
     showConfidence: true,
+    showCheckControls: true,
     maxConcurrency: 3,
     cacheTtlHours: 24,
     dailyLimit: 2000,
@@ -80,6 +81,8 @@
     userName: '[data-testid="User-Name"]',
     tweetLink: 'a[href*="/status/"]'
   };
+
+  const INVISIBLE_CHAR_RE = /[\u00AD\u034F\u061C\u115F\u1160\u17B4\u17B5\u180B-\u180F\u200B-\u200F\u202A-\u202E\u2060-\u206F\u2800\u3164\uFEFF]/gu;
 
   function clone(value) {
     return JSON.parse(JSON.stringify(value));
@@ -136,6 +139,7 @@
       preload: raw.preload === true,
       showPlaceholder: raw.showPlaceholder !== false,
       showConfidence: raw.showConfidence !== false,
+      showCheckControls: raw.showCheckControls !== false,
       maxConcurrency: clamp(Number(raw.maxConcurrency) || 3, 1, 8),
       cacheTtlHours: clamp(Number(raw.cacheTtlHours) || 24, 1, 168),
       dailyLimit: clamp(Number(raw.dailyLimit) || 2000, 1, 100000),
@@ -156,14 +160,19 @@
 
   function normalizeText(value) {
     return String(value || '')
-      .replace(/[\u200B-\u200D\uFEFF]/g, '')
+      .replace(INVISIBLE_CHAR_RE, '')
       .replace(/[\t\n\r ]+/g, ' ')
       .trim()
       .slice(0, MAX_COMMENT_LENGTH);
   }
 
+  function invisibleCharCount(value) {
+    return (String(value || '').match(INVISIBLE_CHAR_RE) || []).length;
+  }
+
   const EMOJI_TOKEN_RE = /(?:\p{Extended_Pictographic}|\p{Regional_Indicator})/gu;
   const EMOJI_RUN_RE = /(?:(?:\p{Extended_Pictographic}|\p{Regional_Indicator})(?:\uFE0F|\u200D|\p{Emoji_Modifier})*)+/gu;
+  const EMOJI_DECORATION_RE = /[\uFE0E\uFE0F\u200D\p{Emoji_Modifier}]/gu;
 
   function emojiSignals(value) {
     const text = normalizeText(value);
@@ -181,15 +190,18 @@
     };
   }
 
+  function stripEmoji(value) {
+    return normalizeText(value).replace(EMOJI_TOKEN_RE, '').replace(EMOJI_DECORATION_RE, '');
+  }
+
   function formatEmojiSignals(label, value) {
     const signals = emojiSignals(value);
     return `${label}_emoji_count=${signals.count},${label}_emoji_ratio=${Math.round(signals.ratio * 100)}%,${label}_emoji_runs=${signals.runs},${label}_emoji_max_run=${signals.maxRun},${label}_emoji_repeats=${signals.repeats}`;
   }
 
   function templateFingerprint(value) {
-    return normalizeText(value)
+    return stripEmoji(value)
       .toLocaleLowerCase()
-      .replace(EMOJI_TOKEN_RE, '')
       .replace(/[a-z]+/gi, '#')
       .replace(/[\p{P}\p{S}\s]+/gu, '')
       .replace(/\d+/g, '#')
@@ -198,16 +210,19 @@
 
   function composeComment(input) {
     const comment = input && typeof input === 'object' ? input : { text: input };
-    const author = normalizeText(comment.author || comment.username || comment.userName);
-    const text = normalizeText(comment.text);
+    const rawAuthor = String(comment.author || comment.username || comment.userName || '');
+    const rawText = String(comment.text || '');
+    const author = normalizeText(rawAuthor);
+    const text = normalizeText(rawText);
     const content = !author ? text : !text ? `[用户名] ${author}` : `[用户名] ${author}\n[评论正文] ${text}`;
     const authorEmoji = emojiSignals(author);
     const bodyEmoji = emojiSignals(text);
     const templateCount = Number(comment.templateCount) || 0;
-    if (!authorEmoji.count && !bodyEmoji.count && templateCount < 2) return content;
-    const strippedAuthor = author.replace(EMOJI_TOKEN_RE, '');
-    const strippedBody = text.replace(EMOJI_TOKEN_RE, '');
-    const signals = `${formatEmojiSignals('username', author)}; ${formatEmojiSignals('body', text)}; username_without_emoji=${strippedAuthor || '—'}; body_without_emoji=${strippedBody || '—'}${templateCount >= 2 ? `; page_template_matches=${templateCount}` : ''}`;
+    const invisibleCount = Number(comment.invisibleCharCount) || invisibleCharCount(rawAuthor) + invisibleCharCount(rawText);
+    if (!authorEmoji.count && !bodyEmoji.count && templateCount < 2 && invisibleCount < 1) return content;
+    const strippedAuthor = stripEmoji(author);
+    const strippedBody = stripEmoji(text);
+    const signals = `${formatEmojiSignals('username', author)}; ${formatEmojiSignals('body', text)}; invisible_char_count=${invisibleCount}; username_without_emoji=${strippedAuthor || '—'}; body_without_emoji=${strippedBody || '—'}${templateCount >= 2 ? `; page_template_matches=${templateCount}` : ''}`;
     return `${content}\n[emoji 结构信号] ${signals}`.slice(0, MAX_COMMENT_LENGTH);
   }
 
@@ -251,10 +266,12 @@
   function localSpamSignal(content) {
     const templateMatches = readSignal(content, 'page_template_matches');
     const bodyEmojiCount = readSignal(content, 'body_emoji_count');
+    const invisibleCount = readSignal(content, 'invisible_char_count');
     return {
       templateMatches,
       bodyEmojiCount,
-      matched: templateMatches >= 2 && bodyEmojiCount >= 1
+      invisibleCount,
+      matched: (templateMatches >= 2 && bodyEmojiCount >= 1) || (invisibleCount >= 3 && (bodyEmojiCount >= 1 || templateMatches >= 2))
     };
   }
 
@@ -277,7 +294,8 @@
     for (const rule of rules || []) {
       const probability = getProbability(answers[rule.id]);
       results[rule.id] = probability;
-      if (rule.enabled !== false && probability >= normalizeThreshold(rule.threshold)) {
+      const spamModelSupported = localSignals.spam.bodyEmojiCount >= 1 || localSignals.spam.templateMatches >= 2 || localSignals.spam.invisibleCount >= 3;
+      if (rule.enabled !== false && probability >= normalizeThreshold(rule.threshold) && (rule.id !== 'spam_behavior' || spamModelSupported)) {
         matches.push({
           ruleId: rule.id,
           name: rule.name,
@@ -385,11 +403,15 @@
   function extractComment(article) {
     if (!article || !article.querySelector) return null;
     const textNode = article.querySelector(SELECTORS.tweetText);
-    const text = normalizeText(textNode ? textNode.textContent : '');
+    const rawText = textNode ? String(textNode.textContent || '') : '';
+    const text = normalizeText(rawText);
     const userNode = article.querySelector(SELECTORS.userName);
-    const author = normalizeText(userNode ? userNode.textContent : '');
+    const rawAuthor = userNode ? String(userNode.textContent || '') : '';
+    const author = normalizeText(rawAuthor);
     const tweetId = tweetIdFromArticle(article);
-    return tweetId && text ? { tweetId, text, author } : null;
+    if (!tweetId || !text) return null;
+    const dirtyCount = invisibleCharCount(rawText) + invisibleCharCount(rawAuthor);
+    return dirtyCount ? { tweetId, text, author, invisibleCharCount: dirtyCount } : { tweetId, text, author };
   }
 
   function isReplyArticle(article, url) {
@@ -520,7 +542,9 @@
     sanitizeConfig,
     activeRules,
     normalizeText,
+    invisibleCharCount,
     emojiSignals,
+    stripEmoji,
     templateFingerprint,
     composeComment,
     buildQuestions,

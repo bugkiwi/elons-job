@@ -100,6 +100,7 @@
     document.querySelectorAll('[data-elon-work-state="hidden"], [data-elon-work-state="pending"]').forEach((article) => {
       removePlaceholder(article);
       article.removeAttribute('data-elon-work-state');
+      setControlsSuppressed(article, false);
     });
     document.querySelectorAll('[data-elon-work-placeholder]').forEach((placeholder) => placeholder.remove());
   }
@@ -144,7 +145,7 @@
       const revealedResult = { ok: true, shouldHide: false, results: previous && previous.results || {}, matches: [] };
       transitionPageStatus(previous, revealedResult);
       if (control) state.processed.set(control.identity, revealedResult);
-      removePlaceholder(article);
+      applySafe(article);
       report('revealed');
     });
     placeholder.appendChild(restore);
@@ -156,6 +157,7 @@
     article.dataset.elonWorkState = 'safe';
     article.classList.remove('elon-work-pending');
     article.style.removeProperty('visibility');
+    setControlsSuppressed(article, false);
     syncControlsForArticle(article);
   }
 
@@ -167,13 +169,31 @@
     if (!article.previousElementSibling || !article.previousElementSibling.matches('[data-elon-work-placeholder]')) {
       article.parentNode && article.parentNode.insertBefore(createPlaceholder(article, comment, matches), article);
     }
+    setControlsSuppressed(article, true);
     syncControlsForArticle(article);
   }
 
   function getControlAnchor(control) {
     if (!control || !control.article || !control.article.isConnected) return null;
     const hidden = control.article.classList.contains('elon-work-hidden') || control.article.style.display === 'none';
-    return hidden ? control.article.previousElementSibling : control.article;
+    if (hidden) return null;
+    return control.article.querySelector(E.SELECTORS.userName) || control.article;
+  }
+
+  function getHoverAnchor(control) {
+    if (!control || !control.article || !control.article.isConnected) return null;
+    const hidden = control.article.classList.contains('elon-work-hidden') || control.article.style.display === 'none';
+    return hidden ? null : control.article;
+  }
+
+  function setControlsSuppressed(article, suppressed) {
+    const disabled = suppressed || Boolean(state.config && state.config.showCheckControls === false);
+    for (const control of state.controls.values()) {
+      if (control.article !== article) continue;
+      control.host.hidden = disabled;
+      control.host.setAttribute('aria-hidden', String(disabled));
+      if (disabled) control.host.classList.remove('is-visible');
+    }
   }
 
   function clearHideTimer(host) {
@@ -210,14 +230,14 @@
   function syncControlsForArticle(article) {
     for (const control of state.controls.values()) {
       if (control.article !== article) continue;
-      const anchor = getControlAnchor(control);
-      bindAnchor(anchor, control);
+      bindAnchor(getHoverAnchor(control), control);
       positionCheckHost(control);
     }
   }
 
   function positionCheckHost(control) {
     if (!control || !control.host) return;
+    if (control.host.hidden) return;
     const anchor = getControlAnchor(control);
     if (!anchor) {
       control.host.classList.remove('is-visible');
@@ -228,9 +248,14 @@
       control.host.classList.remove('is-visible');
       return;
     }
-    const width = 58;
-    const left = Math.max(8, Math.min(window.innerWidth - width - 8, rect.right - width - 8));
-    const top = Math.max(8, Math.min(window.innerHeight - 38, rect.top + 8));
+    const width = 50;
+    const height = 26;
+    const gap = 6;
+    const preferredLeft = rect.right + gap;
+    const left = preferredLeft + width <= window.innerWidth - 8
+      ? preferredLeft
+      : Math.max(8, rect.left - width - gap);
+    const top = Math.max(8, Math.min(window.innerHeight - height - 8, rect.top + (rect.height - height) / 2));
     control.host.style.left = `${left}px`;
     control.host.style.top = `${top}px`;
   }
@@ -372,7 +397,8 @@
       control.comment = comment;
       control.hash = hash;
     }
-    bindAnchor(getControlAnchor(control), control);
+    setControlsSuppressed(article, article.classList.contains('elon-work-hidden') || article.style.display === 'none');
+    bindAnchor(getHoverAnchor(control), control);
     renderCheckControl(control);
     positionCheckHost(control);
     return control;
@@ -590,7 +616,11 @@
       state.hasApiKey = Boolean(next.hasApiKey);
       state.processed.clear();
       if (!state.config.enabled || !state.hasApiKey) clearAppliedStates();
-      for (const control of state.controls.values()) renderCheckControl(control);
+      for (const control of state.controls.values()) {
+        const hidden = control.article.classList.contains('elon-work-hidden') || control.article.style.display === 'none';
+        setControlsSuppressed(control.article, hidden);
+        renderCheckControl(control);
+      }
       renderMonitor();
       scheduleScan();
     }, 3000);
