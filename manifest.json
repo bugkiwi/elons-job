@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "Elon的工作",
+  "version": "0.1.0",
+  "description": "只处理 X 评论区的高置信度色情、性暗示与色情引流评论。",
+  "icons": {
+    "16": "assets/icon16.png",
+    "32": "assets/icon32.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
+  },
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://x.com/*",
+    "https://api.typesafe.ai/*"
+  ],
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "action": {
+    "default_title": "Elon的工作",
+    "default_popup": "src/popup.html",
+    "default_icon": {
+      "16": "assets/icon16.png",
+      "32": "assets/icon32.png",
+      "48": "assets/icon48.png"
+    }
+  },
+  "options_page": "src/settings.html",
+  "content_scripts": [
+    {
+      "matches": ["https://x.com/*"],
+      "js": ["src/shared/core.js", "src/content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["src/styles/content.css"],
+      "matches": ["https://x.com/*"]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self';"
+  }
+}

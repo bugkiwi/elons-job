@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"surface-dim":"#0f131c","surface-container-lowest":"#0a0e17","on-primary-container":"#003050","on-secondary-container":"#00311f","secondary-container":"#00a572","on-primary":"#003354","surface-container-high":"#262a34","secondary-fixed-dim":"#4edea3","primary-fixed":"#cfe5ff","tertiary-container":"#cf8400","on-error":"#690005","surface-container-low":"#181c25","outline-variant":"#3f4851","on-primary-fixed":"#001d33","inverse-surface":"#dfe2ef","inverse-primary":"#00629d","on-surface":"#dfe2ef","primary":"#99cbff","surface-container-highest":"#31353f","surface-bright":"#353943","on-tertiary-fixed-variant":"#653e00","surface":"#0f131c","tertiary-fixed":"#ffddb8","on-surface-variant":"#bfc7d3","error":"#ffb4ab","primary-container":"#1d9bf0","on-secondary":"#003824","on-background":"#dfe2ef","surface-variant":"#31353f","on-error-container":"#ffdad6","background":"#0f131c","surface-tint":"#99cbff","on-tertiary-fixed":"#2a1700","on-tertiary-container":"#432700","secondary":"#4edea3","primary-fixed-dim":"#99cbff","on-secondary-fixed":"#002113","tertiary-fixed-dim":"#ffb95f","error-container":"#93000a","tertiary":"#ffb95f","secondary-fixed":"#6ffbbe","surface-container":"#1c2029","on-secondary-fixed-variant":"#005236","on-tertiary":"#472a00","outline":"#89919d","on-primary-fixed-variant":"#004a78","inverse-on-surface":"#2c303a"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"space-xs":"0.25rem","space-lg":"1rem","gutter":"0.75rem","space-xl":"1.5rem","margin":"1rem","space-md":"0.75rem","space-sm":"0.5rem"},"fontFamily":{"label-sm":["JetBrains Mono"],"headline-sm":["Inter"],"body-lg":["Inter"],"body-md":["Inter"],"label-md":["JetBrains Mono"],"headline-lg":["Inter"],"body-sm":["Inter"],"label-lg":["JetBrains Mono"],"headline-md":["Inter"]},"fontSize":{"label-sm":["10px",{"lineHeight":"12px","fontWeight":"500"}],"headline-sm":["14px",{"lineHeight":"20px","fontWeight":"600"}],"body-lg":["14px",{"lineHeight":"20px","fontWeight":"400"}],"body-md":["13px",{"lineHeight":"18px","fontWeight":"400"}],"label-md":["11px",{"lineHeight":"14px","fontWeight":"500"}],"headline-lg":["20px",{"lineHeight":"26px","fontWeight":"600"}],"body-sm":["12px",{"lineHeight":"16px","fontWeight":"400"}],"label-lg":["12px",{"lineHeight":"16px","fontWeight":"500"}],"headline-md":["16px",{"lineHeight":"22px","fontWeight":"600"}]}}}};</script></head><body class="bg-surface font-body-md text-on-surface min-h-screen selection:bg-primary-container selection:text-on-primary"><header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.45)]"><div class="h-16 w-full px-space-lg flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md shrink-0"><img alt="Elon's Work Extension Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1WrGZ6ayICE2dKqaXEQJM5d8Fs_VxIIutZGSadS1K03HFqNNvnk6_JzC2tMN1xIl6IqRcrVYm6tndXPZqnYz2JGevFBv11ZargK7CbWvo2a0pUx7gejsTuXpPQEG5CSIAa8lT--hkJtMwW5KDW8BpEHS4ssN8nY8wIEzL63oPhZfFY2DKNBXT3Er5tR1oelIXvuQJYcKlcYvdBcJq_A2RNdbQHDjRA4UEd8B4wybsDJtLT0pDJECpYfsxpz"/><div class="flex flex-col justify-center"><div class="flex items-center gap-space-xs"><span class="font-headline-md text-headline-md tracking-tight text-on-surface">Elon的工作</span><span class="font-label-sm text-label-sm text-secondary px-space-xs py-0.5 rounded bg-surface-container-high border border-outline-variant/30 tracking-wide">PROD</span></div><span class="font-body-sm text-body-sm text-on-surface-variant">X (Twitter) 评论区净化扩展</span></div><div class="hidden 2xl:flex items-center gap-1.5 px-space-sm py-1 rounded bg-surface-container-low"><span class="h-1.5 w-1.5 rounded-full bg-secondary animate-pulse"></span><span class="font-label-sm text-label-sm text-on-surface-variant">Chrome MV3 · Jev AI Connected</span></div></div><nav class="hidden xl:flex items-center gap-space-xs p-1 rounded-xl bg-surface-container-lowest" data-active-classes="bg-surface-container-high text-primary font-headline-sm rounded-lg"><a class="px-space-md py-1.5 font-body-md text-body-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" data-path="overview-and-popup" href="#">扩展控制台 (Overview &amp; Popup)</a><a class="px-space-md py-1.5 font-body-md text-body-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" data-path="rule-studio" href="#">规则工作台 (Rule Studio)</a><a class="px-space-md py-1.5 font-body-md text-body-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" data-path="live-preview" href="#">X 评论区效果预览 (Live Preview)</a><a aria-current="page" class="px-space-md py-1.5 transition-colors bg-surface-container-high text-primary font-headline-sm rounded-lg" data-path="settings" href="#">设置中心 (Settings)</a></nav><div class="flex items-center gap-space-md shrink-0"><div class="flex items-center gap-space-xs px-space-sm py-1 rounded bg-surface-container-low"><span class="h-2 w-2 rounded-full bg-secondary"></span><span class="font-label-sm text-label-sm text-on-surface">防护已就绪</span></div><div class="hidden md:flex items-center gap-space-xs px-space-sm py-1 rounded bg-surface-container-low"><span class="font-label-sm text-label-sm text-on-surface-variant">TypeSafe AI</span><span class="font-label-sm text-label-sm text-secondary font-semibold">24ms</span></div><a class="hidden lg:flex items-center gap-1 font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" data-path="documentation" href="#"><span class="material-symbols-outlined text-[16px]">terminal</span><span>Docs</span></a><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-16 bg-surface"><div class="flex flex-col w-full">
+<div class="w-full max-w-7xl mx-auto px-space-md lg:px-space-xl py-space-lg">
+<!-- Top Metadata Bar -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-md mb-space-lg">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-primary shadow-sm">
+<span class="material-symbols-outlined text-[24px]">tune</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-md text-headline-md text-on-surface">扩展首选项 &amp; 规则引擎配置</span>
+<span class="font-label-sm text-label-sm px-space-xs py-0.5 rounded bg-surface-container-high text-primary font-mono">v2.4.1</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">配置 X (Twitter) 内容过滤通道、TypeSafe 神经模型路由与客户端本地拦截规则</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm self-end sm:self-auto">
+<button class="h-8 px-space-md rounded-lg bg-surface-container-low text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors flex items-center gap-1.5 font-label-md text-label-md" id="btnExportConfig">
+<span class="material-symbols-outlined text-[16px]">file_upload</span>
+<span>导出配置</span>
+</button>
+<button class="h-8 px-space-md rounded-lg bg-primary-container text-on-primary hover:bg-primary transition-all flex items-center gap-1.5 font-headline-sm text-headline-sm shadow-sm" id="btnSaveAll">
+<span class="material-symbols-outlined text-[16px]">check</span>
+<span>已同步至云端/本地</span>
+</button>
+</div>
+</div>
+<!-- Main 2-Column Split: Nav Tabs & Settings Body -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+<!-- Left Navigation Bar -->
+<aside class="lg:col-span-3 flex lg:flex-col gap-space-xs overflow-x-auto lg:overflow-visible pb-space-xs lg:pb-0 sticky top-20 z-10 bg-surface lg:bg-transparent">
+<button class="nav-tab-btn active flex items-center justify-between w-full px-space-md py-2.5 rounded-lg bg-surface-container-high text-primary font-headline-sm text-headline-sm text-left transition-colors whitespace-nowrap" data-tab-target="section-general">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-[18px]">settings</span>
+<span>常规通用 (General)</span>
+</div>
+<span class="w-1.5 h-1.5 rounded-full bg-secondary hidden lg:block"></span>
+</button>
+<button class="nav-tab-btn flex items-center justify-between w-full px-space-md py-2.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors font-body-md text-body-md text-left whitespace-nowrap" data-tab-target="section-api">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-[18px]">key</span>
+<span>TypeSafe API 引擎</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-mono px-1 rounded bg-surface-container-lowest">34ms</span>
+</button>
+<button class="nav-tab-btn flex items-center justify-between w-full px-space-md py-2.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors font-body-md text-body-md text-left whitespace-nowrap" data-tab-target="section-filters">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-[18px]">security</span>
+<span>过滤规则 (Rules)</span>
+</div>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container-low text-on-surface font-mono">3 活跃</span>
+</button>
+<button class="nav-tab-btn flex items-center justify-between w-full px-space-md py-2.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors font-body-md text-body-md text-left whitespace-nowrap" data-tab-target="section-display">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+<span>显示与交互 (Display)</span>
+</div>
+</button>
+<button class="nav-tab-btn flex items-center justify-between w-full px-space-md py-2.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors font-body-md text-body-md text-left whitespace-nowrap" data-tab-target="section-quota">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-[18px]">bar_chart</span>
+<span>成本与配额 (Quota)</span>
+</div>
+<span class="font-label-sm text-label-sm text-tertiary font-mono">11.5%</span>
+</button>
+<button class="nav-tab-btn flex items-center justify-between w-full px-space-md py-2.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors font-body-md text-body-md text-left whitespace-nowrap" data-tab-target="section-advanced">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-[18px]">developer_board</span>
+<span>高级开发者 (Advanced)</span>
+</div>
+</button>
+<!-- Sidebar Widget: Live Telemetry Snapshot -->
+<div class="hidden lg:flex flex-col gap-space-sm mt-space-md p-space-md rounded-xl bg-surface-container-lowest shadow-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant">JEV ENGINE REALTIME</span>
+<span class="h-2 w-2 rounded-full bg-secondary animate-pulse"></span>
+</div>
+<div class="flex items-baseline gap-space-xs">
+<span class="font-headline-lg text-headline-lg font-mono text-on-surface">1,824</span>
+<span class="font-label-sm text-label-sm text-secondary font-mono">次拦截已阻断</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">基于语义识别自动净化，为您节省约 48 分钟杂讯浏览时间。</span>
+</div>
+</aside>
+<!-- Right Settings Content Panes -->
+<main class="lg:col-span-9 flex flex-col gap-space-lg">
+<!-- SECTION 1: General (通用设置) -->
+<section class="settings-section flex flex-col gap-space-md p-space-lg rounded-xl bg-surface-container-low shadow-sm" id="section-general">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">toggle_on</span>
+<span class="font-headline-md text-headline-md text-on-surface">通用运行规则 (General)</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">控制内容拦截器的常驻状态、适用页面范畴及应急逃生通路</span>
+</div>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-secondary/10 text-secondary font-mono">CORE_ENGINE_ACTIVE</span>
+</div>
+<div class="flex flex-col gap-space-xs">
+<!-- Row 1: 全局启用 -->
+<div class="flex items-center justify-between p-space-md rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors">
+<div class="flex flex-col pr-space-md">
+<span class="font-headline-sm text-headline-sm text-on-surface">启用全局净化保护</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">注入 X (Twitter) 动态 DOM 监听器，发现新评论时触发实时流式推理过滤</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer shrink-0">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-surface after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-primary after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<!-- Row 2: 只处理 Tweet 评论 -->
+<div class="flex items-center justify-between p-space-md rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors">
+<div class="flex flex-col pr-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-sm text-headline-sm text-on-surface">只处理 Tweet 评论回复 (Skip Root Tweet)</span>
+<span class="font-label-sm text-label-sm text-primary px-1.5 py-0.2 rounded bg-surface-container-lowest">推荐</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">仅对详情页下方评论执行模型扫描；跳过主帖正文与 For You / Following 推荐信息流，保障主干阅读流畅度</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer shrink-0">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-surface after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-primary after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<!-- Row 3: Fail-Open 容错 -->
+<div class="flex items-center justify-between p-space-md rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors">
+<div class="flex flex-col pr-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-sm text-headline-sm text-on-surface">极速 Fail-Open 容错保障</span>
+<span class="font-label-sm text-label-sm text-secondary px-1.5 py-0.2 rounded bg-surface-container-lowest">零漏杀防线</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">当网络抖动、模型推理超时 (&gt;250ms) 或配额耗尽时，默认完整放行评论，绝不错杀任何真实互动</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer shrink-0">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-surface after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-primary after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+</div>
+</section>
+<!-- SECTION 2: TypeSafe API 连接与鉴权 -->
+<section class="settings-section flex flex-col gap-space-md p-space-lg rounded-xl bg-surface-container-low shadow-sm" id="section-api">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">vpn_key</span>
+<span class="font-headline-md text-headline-md text-on-surface">TypeSafe API 连接与鉴权</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">连接 TypeSafe 智能语义网关，驱动毫秒级本地流式规则分析</span>
+</div>
+<!-- Status Badge -->
+<div class="flex items-center gap-1.5 px-space-sm py-1 rounded-md bg-secondary-container/20 text-secondary">
+<span class="h-2 w-2 rounded-full bg-secondary animate-pulse"></span>
+<span class="font-label-sm text-label-sm font-mono tracking-tight">Connected (Latency 34ms, Model: Jev v1.2)</span>
+</div>
+</div>
+<!-- API Key Input Field & Actions -->
+<div class="p-space-md rounded-lg bg-surface-container flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<label class="font-headline-sm text-headline-sm text-on-surface">TypeSafe API Secret Key</label>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Live Production Token</span>
+</div>
+<div class="flex flex-col sm:flex-row gap-space-sm">
+<div class="relative flex-1">
+<input class="w-full h-10 px-space-md rounded-lg bg-surface-container-lowest text-on-surface font-mono text-body-md focus:outline-none focus:ring-1 focus:ring-primary-container tracking-wider" id="apiKeyField" readonly="" type="password" value="ts_live_9f82d09a4b8821ec09312384a1"/>
+<button class="absolute right-3 top-2.5 text-on-surface-variant hover:text-on-surface" id="toggleKeyVisibility">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+</div>
+<div class="flex items-center gap-space-xs shrink-0">
+<button class="h-10 px-space-md rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-headline-sm text-headline-sm transition-colors flex items-center gap-1" id="btnTestKey">
+<span class="material-symbols-outlined text-[18px] text-secondary">sync</span>
+<span>测试连接</span>
+</button>
+<button class="h-10 px-space-md rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-headline-sm text-headline-sm transition-colors" id="btnChangeKey">
+                  更换
+                </button>
+<button class="h-10 px-space-md rounded-lg bg-error-container/30 hover:bg-error-container text-error font-headline-sm text-headline-sm transition-colors" id="btnRevokeKey">
+                  删除
+                </button>
+</div>
+</div>
+<!-- Security Note -->
+<div class="flex items-start gap-space-xs mt-1 p-space-sm rounded bg-surface-container-lowest">
+<span class="material-symbols-outlined text-secondary text-[16px] mt-0.5">verified_user</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+                安全承诺：API Key 仅存储于 Chrome 本地沙盒（<code class="font-mono text-primary px-1 bg-surface-container-high rounded">chrome.storage.local</code>），在每次向 TypeSafe 过滤代理发出鉴权握手时直接发送。绝不上传任何第三方或插件开发者自有服务器。
+              </span>
+</div>
+</div>
+</section>
+<!-- SECTION 3: Filters & Rules (规则管理列表) -->
+<section class="settings-section flex flex-col gap-space-md p-space-lg rounded-xl bg-surface-container-low shadow-sm" id="section-filters">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm pb-space-xs">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">filter_alt</span>
+<span class="font-headline-md text-headline-md text-on-surface">过滤规则编排 (Rule Pipeline)</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">内置分类准则与定制 Prompt 语义规则。点击卡片可实时调整敏感度或推理指令</span>
+</div>
+<button class="h-8 px-space-md rounded-lg bg-primary-container text-on-primary hover:bg-primary transition-colors flex items-center gap-1.5 font-headline-sm text-headline-sm self-start sm:self-auto shrink-0 shadow-sm" id="btnOpenNewRuleModal">
+<span class="material-symbols-outlined text-[16px]">add</span>
+<span>添加自定义过滤规则</span>
+</button>
+</div>
+<!-- Rule Cards Stack -->
+<div class="flex flex-col gap-space-sm">
+<!-- Rule Card 1: 色情 / 性暗示 (内置) -->
+<div class="p-space-md rounded-lg bg-surface-container hover:bg-surface-container-high/90 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-space-md group">
+<div class="flex items-start gap-space-md">
+<div class="w-9 h-9 rounded-lg bg-error/10 text-error flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[20px]">block</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="font-headline-sm text-headline-sm text-on-surface">色情 / 性暗示</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-mono">SYSTEM_DEFAULT</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-primary-container/10 text-primary font-mono">阈值: 80% (平衡模式)</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-1">隐藏色情、明显性暗示、性挑逗、擦边低俗或自我性化推介等评论杂讯</span>
+</div>
+</div>
+<div class="flex items-center justify-between sm:justify-end gap-space-md shrink-0">
+<div class="flex items-center gap-space-xs">
+<button class="rule-edit-trigger h-7 px-space-sm rounded bg-surface-container-lowest text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors" data-rule="nsfw-implicit">
+                    编辑
+                  </button>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-10 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-surface after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-primary after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-secondary-container"></div>
+</label>
+</div>
+</div>
+<!-- Rule Card 2: 色情引流 / 招揽 (内置) -->
+<div class="p-space-md rounded-lg bg-surface-container hover:bg-surface-container-high/90 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-space-md group">
+<div class="flex items-start gap-space-md">
+<div class="w-9 h-9 rounded-lg bg-tertiary-container/10 text-tertiary flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[20px]">link_off</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="font-headline-sm text-headline-sm text-on-surface">色情引流 / 招揽</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-mono">SYSTEM_DEFAULT</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-primary-container/10 text-primary font-mono">阈值: 80% (平衡模式)</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-1">隐藏通过性化内容吸引私聊、加微信/Telegram群组、跳转外链或销售成人会员服务</span>
+</div>
+</div>
+<div class="flex items-center justify-between sm:justify-end gap-space-md shrink-0">
+<div class="flex items-center gap-space-xs">
+<button class="rule-edit-trigger h-7 px-space-sm rounded bg-surface-container-lowest text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors" data-rule="nsfw-funnel">
+                    编辑
+                  </button>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-10 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-surface after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-primary after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-secondary-container"></div>
+</label>
+</div>
+</div>
+<!-- Rule Card 3: Crypto spam / 空投诱导 (自定义规则) -->
+<div class="p-space-md rounded-lg bg-surface-container hover:bg-surface-container-high/90 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-space-md group">
+<div class="flex items-start gap-space-md">
+<div class="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[20px]">currency_bitcoin</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="font-headline-sm text-headline-sm text-on-surface">Crypto spam / 空投诱导</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-primary-container/20 text-primary font-mono">CUSTOM_RULE</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-tertiary-container/10 text-tertiary font-mono">阈值: 85% (严格模式)</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-1">隐藏加密货币空投拉盘、仿冒钱包链接、赠送代币及批量僵尸刷屏</span>
+</div>
+</div>
+<div class="flex items-center justify-between sm:justify-end gap-space-md shrink-0">
+<div class="flex items-center gap-space-xs">
+<button class="rule-edit-trigger h-7 px-space-sm rounded bg-surface-container-lowest text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors" data-rule="crypto-spam">
+                    编辑
+                  </button>
+<button class="h-7 px-space-sm rounded bg-error-container/20 text-error hover:bg-error-container/40 font-label-md text-label-md transition-colors">
+                    删除
+                  </button>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-10 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-surface after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-primary after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-secondary-container"></div>
+</label>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 4: Display (呈现与样式) -->
+<section class="settings-section flex flex-col gap-space-md p-space-lg rounded-xl bg-surface-container-low shadow-sm" id="section-display">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">brush</span>
+<span class="font-headline-md text-headline-md text-on-surface">X 页面呈现样式与占位符 (Display)</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">控制在 X (Twitter) Web 页面中已隐藏评论的视觉形态与反查体验</span>
+</div>
+</div>
+<div class="flex flex-col gap-space-sm">
+<!-- Placeholder Setting -->
+<div class="p-space-md rounded-lg bg-surface-container flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">隐藏评论折叠条 (Collapsed Bar)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">评论被模型击中后，将其收起为单行极简占位符，点击可随时反展开</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-mono">ENABLED</span>
+</div>
+<!-- Live Preview of Placeholder -->
+<div class="p-space-sm rounded-lg bg-surface-container-lowest flex items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="text-[16px]">🙈</span>
+<span class="font-body-sm text-body-sm text-on-surface truncate">Elon的工作隐藏了一条评论</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container-high text-primary font-mono shrink-0">色情 / 性暗示 · 93%</span>
+</div>
+<button class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface shrink-0 px-2 py-1 rounded bg-surface-container">
+                  点击查看
+                </button>
+</div>
+</div>
+<!-- Preload Lock Mode Toggle -->
+<div class="flex items-center justify-between p-space-md rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors">
+<div class="flex flex-col pr-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-sm text-headline-sm text-on-surface">预载视觉锁定 (Preload Guard Mode)</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant px-1.5 py-0.2 rounded bg-surface-container-lowest">实验性</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">在模型返回分类结果前完全遮罩新渲染评论（默认关闭：避免用户滚动 Feed 时出现局部闪烁或帧率卡顿）</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer shrink-0">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-surface after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-primary after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+</div>
+</section>
+<!-- SECTION 5: Cost & Quota (成本与配额) -->
+<section class="settings-section flex flex-col gap-space-md p-space-lg rounded-xl bg-surface-container-low shadow-sm" id="section-quota">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">account_balance_wallet</span>
+<span class="font-headline-md text-headline-md text-on-surface">API 配额与成本防护</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">限制高并发消费，通过客户端缓存机制最大化压缩 API 调用开销</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-mono px-2 py-0.5 rounded bg-surface-container-high">BUDGET_SECURED</span>
+</div>
+<!-- Progress Bar Meter -->
+<div class="p-space-md rounded-lg bg-surface-container flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-on-surface">今日请求计数 (Daily Metered Requests)</span>
+<span class="font-label-md text-label-md font-mono text-on-surface">231 / 2,000 requests</span>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-container-lowest overflow-hidden">
+<div class="h-full bg-secondary transition-all" style="width: 11.55%;"></div>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm text-on-surface-variant">
+<span>当前使用率 11.5% · 预警阈值 90%</span>
+<span>重置周期: 每日 00:00 (UTC+8)</span>
+</div>
+</div>
+<!-- Quota Safeguard Rules Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<!-- Concurrency Limit -->
+<div class="p-space-md rounded-lg bg-surface-container flex flex-col justify-between gap-space-sm">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">最大并发请求数 (Max Concurrency)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">限制同一时间向 TypeSafe API 发送的并发 HTTP 通道数</span>
+</div>
+<div class="flex items-center justify-between pt-2">
+<span class="font-label-sm text-label-sm text-primary font-mono">推荐: 3 通道</span>
+<select class="h-8 px-2 rounded bg-surface-container-lowest text-on-surface font-mono text-label-md focus:outline-none">
+<option value="1">1 (超低负荷)</option>
+<option selected="" value="3">3 (默认最佳平衡)</option>
+<option value="5">5 (极速多线程)</option>
+</select>
+</div>
+</div>
+<!-- Cache TTL -->
+<div class="p-space-md rounded-lg bg-surface-container flex flex-col justify-between gap-space-sm">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">本地语义判定 Cache (TTL)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">相同或极高度相似的评论文本无需再次请求模型</span>
+</div>
+<div class="flex items-center justify-between pt-2">
+<span class="font-label-sm text-label-sm text-secondary font-mono">已缓存 1,420 条特征</span>
+<select class="h-8 px-2 rounded bg-surface-container-lowest text-on-surface font-mono text-label-md focus:outline-none">
+<option value="6">6 小时</option>
+<option selected="" value="24">24 小时 (推荐)</option>
+<option value="72">72 小时</option>
+</select>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 6: Advanced (高级模式) -->
+<section class="settings-section flex flex-col gap-space-md p-space-lg rounded-xl bg-surface-container-low shadow-sm" id="section-advanced">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">code</span>
+<span class="font-headline-md text-headline-md text-on-surface">高级开发者选项 (Advanced Sandbox)</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">用于调试 DOM 拦截点、Inspect 提取的 Payload 结构及重置本地存储</span>
+</div>
+</div>
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between p-space-md rounded-lg bg-surface-container">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">在控制台打印 Jev 推理耗时与 Tokens</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">在 DevTools Console 中输出结构化分类报告与置信度元数据</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer shrink-0">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-surface after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-primary after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<div class="flex items-center justify-between p-space-md rounded-lg bg-surface-container">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-error">清空本地判定缓存与 IndexedDB</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">重置全部已记录的临时哈希缓存，不影响您的 API Key 及自定义规则</span>
+</div>
+<button class="h-8 px-space-md rounded-lg bg-error-container/20 text-error hover:bg-error-container/40 transition-colors font-label-md text-label-md">
+                立即清除缓存
+              </button>
+</div>
+</div>
+</section>
+</main>
+</div>
+</div>
+<!-- MODAL / SLIDE-OVER: Rule Editor (新建 / 编辑过滤规则) -->
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-container-lowest/80 backdrop-blur-sm hidden transition-opacity" id="ruleEditorModal">
+<div class="relative w-full max-w-2xl max-h-[921px] overflow-y-auto rounded-xl bg-surface-container p-space-lg shadow-xl border-none">
+<!-- Modal Header -->
+<div class="flex items-center justify-between pb-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">edit_note</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md text-on-surface" id="modalTitle">编辑过滤规则: Crypto spam</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">定义 AI 语义分类准则、排除条件与置信度过滤阈值</span>
+</div>
+</div>
+<button class="w-8 h-8 rounded-lg bg-surface-container-high hover:bg-surface-bright flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors" id="btnCloseModal">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<!-- Modal Body Form -->
+<div class="flex flex-col gap-space-md">
+<!-- Field 1: Rule Name -->
+<div class="flex flex-col gap-space-xs">
+<label class="font-headline-sm text-headline-sm text-on-surface">规则名称 (Rule Name)</label>
+<input class="w-full h-10 px-space-md rounded-lg bg-surface-container-lowest text-on-surface font-body-md text-body-md focus:outline-none focus:ring-1 focus:ring-primary-container" id="modalRuleName" type="text" value="Crypto spam"/>
+</div>
+<!-- Field 2: Target Criteria (隐藏什么内容) -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<label class="font-headline-sm text-headline-sm text-on-surface">隐藏什么内容？(Match Instructions)</label>
+<span class="font-label-sm text-label-sm text-error">PROMPT_INJECT</span>
+</div>
+<textarea class="w-full p-space-md rounded-lg bg-surface-container-lowest text-on-surface font-body-md text-body-md focus:outline-none focus:ring-1 focus:ring-primary-container resize-none leading-relaxed" rows="2">推广加密货币、代币、空投、杀猪盘或可疑炒币投资机会，包含诈骗套路如免费领币、点击私信拿白名单等</textarea>
+<span class="font-body-sm text-body-sm text-on-surface-variant">提示词将被编译为 TypeSafe Jev 分类器的第一优先匹配判据。</span>
+</div>
+<!-- Field 3: Negative Criteria (不要隐藏什么内容) -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<label class="font-headline-sm text-headline-sm text-on-surface">不要隐藏什么内容？(False Criteria / Whitelist Guard)</label>
+<span class="font-label-sm text-label-sm text-secondary">FALSE_POSITIVE_GUARD</span>
+</div>
+<textarea class="w-full p-space-md rounded-lg bg-surface-container-lowest text-on-surface font-body-md text-body-md focus:outline-none focus:ring-1 focus:ring-primary-container resize-none leading-relaxed" rows="2">普通 Bitcoin、区块链、Web3 基础设施技术架构探讨、上市公司财报或合规行业正常新闻讨论</textarea>
+<span class="font-body-sm text-body-sm text-on-surface-variant">明确反例可大幅降低误杀概率，保护真实技术对话与严肃分析。</span>
+</div>
+<!-- Field 4: Threshold Slider -->
+<div class="p-space-md rounded-lg bg-surface-container-lowest flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<label class="font-headline-sm text-headline-sm text-on-surface">敏感度阈值 (Confidence Threshold)</label>
+<span class="font-headline-sm text-headline-sm text-primary font-mono" id="sliderValueText">0.85 (严格)</span>
+</div>
+<input class="w-full h-1.5 bg-surface-container-high rounded-lg appearance-none cursor-pointer accent-primary-container" id="thresholdSlider" max="0.95" min="0.50" step="0.05" type="range" value="0.85"/>
+<div class="flex items-center justify-between font-label-sm text-label-sm text-on-surface-variant font-mono">
+<span>激进 (0.65)</span>
+<span>● 平衡 (0.80)</span>
+<span>严格 (0.90)</span>
+</div>
+</div>
+<!-- Field 5: Jev JSON preview Toggle -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-on-surface">高级 Jev 编译模式 (Raw JSON Preview)</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" id="toggleJsonPreview" type="checkbox"/>
+<div class="w-9 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-surface after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-primary after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<div class="hidden p-space-md rounded-lg bg-surface-container-lowest font-mono text-label-sm text-secondary overflow-x-auto" id="jsonPreviewBox">
+<pre class="m-0 leading-tight"><code>{
+  "rule_id": "rule_crypto_spam_01",
+  "name": "Crypto spam",
+  "match_intent": "promotional cryptocurrency airdrop or scam",
+  "guard_conditions": ["bitcoin technology", "financial report", "news"],
+  "min_confidence": 0.85,
+  "engine": "jev-classifier-v1.2",
+  "action": "COLLAPSE_WITH_BADGE"
+}</code></pre>
+</div>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="flex items-center justify-end gap-space-sm pt-space-lg">
+<button class="h-9 px-space-md rounded-lg bg-surface-container-high text-on-surface-variant hover:text-on-surface font-headline-sm text-headline-sm transition-colors" id="btnCancelModal">
+          取消
+        </button>
+<button class="h-9 px-space-lg rounded-lg bg-primary-container text-on-primary hover:bg-primary font-headline-sm text-headline-sm transition-all shadow-sm" id="btnSaveRule">
+          保存规则
+        </button>
+</div>
+</div>
+</div>
+<script>
+    (function() {
+      // 1. Sidebar Tab Switching Logic
+      const tabs = document.querySelectorAll('.nav-tab-btn');
+      const sections = document.querySelectorAll('.settings-section');
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const target = tab.getAttribute('data-tab-target');
+          
+          // Style active tab
+          tabs.forEach(t => {
+            t.classList.remove('bg-surface-container-high', 'text-primary');
+            t.classList.add('text-on-surface-variant');
+            const dot = t.querySelector('span.rounded-full');
+            if (dot) dot.classList.add('hidden');
+          });
+
+          tab.classList.add('bg-surface-container-high', 'text-primary');
+          tab.classList.remove('text-on-surface-variant');
+          const activeDot = tab.querySelector('span.rounded-full');
+          if (activeDot) activeDot.classList.remove('hidden');
+
+          // Scroll to targeted section
+          const targetEl = document.getElementById(target);
+          if (targetEl) {
+            targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      });
+
+      // 2. API Key Visibility Toggle
+      const toggleKeyBtn = document.getElementById('toggleKeyVisibility');
+      const apiKeyField = document.getElementById('apiKeyField');
+      if (toggleKeyBtn && apiKeyField) {
+        toggleKeyBtn.addEventListener('click', () => {
+          if (apiKeyField.type === 'password') {
+            apiKeyField.type = 'text';
+            toggleKeyBtn.innerHTML = '<span class="material-symbols-outlined text-[18px]">visibility_off</span>';
+          } else {
+            apiKeyField.type = 'password';
+            toggleKeyBtn.innerHTML = '<span class="material-symbols-outlined text-[18px]">visibility</span>';
+          }
+        });
+      }
+
+      // 3. Test API Key Toast Feedback
+      const btnTestKey = document.getElementById('btnTestKey');
+      if (btnTestKey) {
+        btnTestKey.addEventListener('click', () => {
+          btnTestKey.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin text-secondary">progress_activity</span><span>测试中...</span>';
+          setTimeout(() => {
+            btnTestKey.innerHTML = '<span class="material-symbols-outlined text-[18px] text-secondary">check_circle</span><span>连接正常 (28ms)</span>';
+            setTimeout(() => {
+              btnTestKey.innerHTML = '<span class="material-symbols-outlined text-[18px] text-secondary">sync</span><span>测试连接</span>';
+            }, 2500);
+          }, 800);
+        });
+      }
+
+      // 4. Modal Open & Close Behaviors
+      const modal = document.getElementById('ruleEditorModal');
+      const btnOpenNewRuleModal = document.getElementById('btnOpenNewRuleModal');
+      const btnCloseModal = document.getElementById('btnCloseModal');
+      const btnCancelModal = document.getElementById('btnCancelModal');
+      const btnSaveRule = document.getElementById('btnSaveRule');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalRuleName = document.getElementById('modalRuleName');
+
+      function openModal(isEdit = false, ruleName = "新建自定义规则") {
+        modalTitle.textContent = isEdit ? `编辑过滤规则: ${ruleName}` : '添加自定义过滤规则';
+        modalRuleName.value = isEdit ? ruleName : '';
+        modal.classList.remove('hidden');
+      }
+
+      function closeModal() {
+        modal.classList.add('hidden');
+      }
+
+      if (btnOpenNewRuleModal) {
+        btnOpenNewRuleModal.addEventListener('click', () => openModal(false));
+      }
+      if (btnCloseModal) btnCloseModal.addEventListener('click', closeModal);
+      if (btnCancelModal) btnCancelModal.addEventListener('click', closeModal);
+      if (btnSaveRule) {
+        btnSaveRule.addEventListener('click', () => {
+          btnSaveRule.textContent = '保存成功!';
+          setTimeout(() => {
+            btnSaveRule.textContent = '保存规则';
+            closeModal();
+          }, 600);
+        });
+      }
+
+      // Hook up rule item edit triggers
+      document.querySelectorAll('.rule-edit-trigger').forEach(trigger => {
+        trigger.addEventListener('click', (e) => {
+          const card = e.target.closest('.group');
+          const title = card ? card.querySelector('.font-headline-sm').innerText : '规则详情';
+          openModal(true, title);
+        });
+      });
+
+      // 5. Slider Label Update
+      const thresholdSlider = document.getElementById('thresholdSlider');
+      const sliderValueText = document.getElementById('sliderValueText');
+      if (thresholdSlider && sliderValueText) {
+        thresholdSlider.addEventListener('input', (e) => {
+          const val = parseFloat(e.target.value);
+          let label = '严格';
+          if (val <= 0.70) label = '激进';
+          else if (val <= 0.82) label = '平衡';
+          sliderValueText.textContent = `${val.toFixed(2)} (${label})`;
+        });
+      }
+
+      // 6. JSON Preview Toggle
+      const toggleJsonPreview = document.getElementById('toggleJsonPreview');
+      const jsonPreviewBox = document.getElementById('jsonPreviewBox');
+      if (toggleJsonPreview && jsonPreviewBox) {
+        toggleJsonPreview.addEventListener('change', (e) => {
+          if (e.target.checked) {
+            jsonPreviewBox.classList.remove('hidden');
+          } else {
+            jsonPreviewBox.classList.add('hidden');
+          }
+        });
+      }
+    })();
+  </script>
+</div></main><footer class="w-full bg-surface-container-lowest py-space-lg mt-space-xl"><div class="w-full px-space-lg flex flex-col md:flex-row items-center justify-between gap-space-md"><div class="flex items-center gap-space-sm"><span class="font-label-sm text-label-sm text-on-surface-variant">Elon的工作 © 2025</span><span class="text-outline-variant font-label-sm text-label-sm">/</span><span class="font-label-sm text-label-sm text-on-surface-variant">Zero-Noise Social Feed Guardian</span></div><div class="flex items-center gap-space-lg font-label-sm text-label-sm text-on-surface-variant"><span class="flex items-center gap-1.5"><span class="h-1.5 w-1.5 rounded-full bg-secondary"></span><span>Agent Core v2.4.1</span></span><span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">bolt</span><span>Latency: 24ms</span></span><span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">shield</span><span>Model: TypeSafe-Filter-X1</span></span></div></div></footer></body></html>

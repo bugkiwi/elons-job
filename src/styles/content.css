@@ -1,0 +1,170 @@
+.elon-work-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  margin: 2px 0;
+  color: #dfe2ef;
+  background: #101720;
+  border: 1px solid #263646;
+  border-left: 2px solid #ef4444;
+  border-radius: 5px;
+  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+.elon-work-placeholder-icon {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 5px;
+  background: rgba(239, 68, 68, .12);
+}
+.elon-work-placeholder-copy { min-width: 0; flex: 1; }
+.elon-work-placeholder-copy strong { display: block; font-size: 13px; }
+.elon-work-placeholder-details { overflow: hidden; margin-top: 2px; color: #ff9a92; font: 10px/1.4 "JetBrains Mono", "SFMono-Regular", Consolas, monospace; text-overflow: ellipsis; white-space: nowrap; }
+.elon-work-restore { padding: 5px 8px; color: #99cbff; background: #192b3c; border: 1px solid #2d4964; border-radius: 4px; font: 500 10px "JetBrains Mono", "SFMono-Regular", Consolas, monospace; white-space: nowrap; }
+.elon-work-restore:hover { color: white; background: #1d9bf0; }
+.elon-work-pending { visibility: hidden !important; }
+.elon-work-placeholder.compact { padding-block: 7px; border-left-color: #64748b; }
+.elon-work-placeholder.compact .elon-work-placeholder-icon { width: 22px; height: 22px; font-size: 12px; }
+.elon-work-placeholder.compact .elon-work-placeholder-copy strong { font-size: 11px; }
+.elon-work-placeholder.compact .elon-work-placeholder-details { color: #94a3b8; }
+
+.elon-work-check-host {
+  position: fixed;
+  z-index: 2147483645;
+  width: 58px;
+  opacity: 0;
+  pointer-events: none;
+  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  transition: opacity .16s ease;
+}
+.elon-work-check-host.is-visible { opacity: 1; pointer-events: auto; }
+.elon-work-check-button {
+  width: 58px;
+  min-height: 27px;
+  padding: 5px 8px;
+  color: #a7d3ff;
+  background: #101c2b;
+  border: 1px solid #2d5a84;
+  border-radius: 7px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .22);
+  cursor: pointer;
+  font: 600 11px/1.2 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  white-space: nowrap;
+}
+.elon-work-check-button:hover,
+.elon-work-check-button:focus-visible { color: #fff; background: #1d9bf0; outline: none; }
+.elon-work-check-button:disabled { cursor: wait; opacity: .8; }
+.elon-work-check-popover {
+  position: absolute;
+  right: calc(100% + 8px);
+  top: 0;
+  display: none;
+  width: 248px;
+  padding: 13px;
+  color: #dfe8f5;
+  background: #101720;
+  border: 1px solid #2d4057;
+  border-radius: 9px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, .34);
+  pointer-events: auto;
+}
+.elon-work-check-host:hover .elon-work-check-popover,
+.elon-work-check-host:focus-within .elon-work-check-popover { display: block; }
+.elon-work-check-title { display: block; color: #f7fbff; font-size: 12px; }
+.elon-work-check-status { margin-top: 8px; color: #8dc8ff; font-size: 12px; font-weight: 700; }
+.elon-work-check-detail { margin: 5px 0 0; color: #91a3b8; font-size: 11px; line-height: 1.45; }
+.elon-work-check-rows { display: grid; gap: 4px; margin-top: 10px; }
+.elon-work-check-row { display: flex; justify-content: space-between; gap: 12px; color: #a6b7c9; font: 10px/1.3 "JetBrains Mono", "SFMono-Regular", Consolas, monospace; }
+.elon-work-check-row strong { color: #f6c86e; font-weight: 700; }
+.elon-work-check-recheck {
+  width: 100%;
+  margin-top: 11px;
+  padding: 6px 8px;
+  color: #a7d3ff;
+  background: #17283a;
+  border: 1px solid #2d4964;
+  border-radius: 5px;
+  cursor: pointer;
+  font: 600 10px "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+}
+.elon-work-check-recheck:hover,
+.elon-work-check-recheck:focus-visible { color: #fff; background: #1d9bf0; outline: none; }
+
+.elon-work-monitor {
+  position: fixed;
+  z-index: 2147483644;
+  top: 50%;
+  right: 12px;
+  width: 168px;
+  color: #dfe8f5;
+  transform: translateY(-50%);
+  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+.elon-work-monitor-button {
+  display: grid;
+  grid-template-columns: 8px 1fr;
+  gap: 6px 8px;
+  align-items: center;
+  width: 100%;
+  padding: 10px 11px;
+  color: #dfe8f5;
+  background: rgba(16, 23, 32, .94);
+  border: 1px solid #2d4057;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
+  cursor: pointer;
+  text-align: left;
+}
+.elon-work-monitor-button:hover,
+.elon-work-monitor-button:focus-visible { border-color: #4b8ac2; outline: none; }
+.elon-work-monitor-button > span:not(.elon-work-monitor-dot) { font-size: 12px; font-weight: 700; }
+.elon-work-monitor-summary { grid-column: 2; color: #8fa2b7; font: 9px "JetBrains Mono", "SFMono-Regular", Consolas, monospace; white-space: nowrap; }
+.elon-work-monitor-dot { width: 8px; height: 8px; border-radius: 50%; background: #64748b; box-shadow: 0 0 0 4px rgba(100, 116, 139, .12); }
+.elon-work-monitor-dot.is-ready { background: #16c784; box-shadow: 0 0 0 4px rgba(22, 199, 132, .12); }
+.elon-work-monitor-dot.is-busy { background: #f4bd55; box-shadow: 0 0 0 4px rgba(244, 189, 85, .12); }
+.elon-work-monitor-dot.is-warn { background: #f06c6c; box-shadow: 0 0 0 4px rgba(240, 108, 108, .12); }
+.elon-work-monitor-panel {
+  display: none;
+  margin-top: 7px;
+  padding: 13px;
+  background: rgba(16, 23, 32, .98);
+  border: 1px solid #2d4057;
+  border-radius: 8px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, .3);
+}
+.elon-work-monitor.is-open .elon-work-monitor-panel { display: block; }
+.elon-work-monitor-panel > strong { display: block; font-size: 12px; }
+.elon-work-monitor-status { min-height: 28px; margin: 7px 0 10px; color: #91a3b8; font-size: 10px; line-height: 1.4; }
+.elon-work-monitor-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.elon-work-monitor-grid > div { padding: 7px; background: #141f2c; border: 1px solid #223449; border-radius: 5px; }
+.elon-work-monitor-grid strong { display: block; color: #f4f8ff; font: 700 16px/1 "JetBrains Mono", "SFMono-Regular", Consolas, monospace; }
+.elon-work-monitor-grid span { display: block; margin-top: 4px; color: #8295aa; font-size: 9px; }
+.elon-work-monitor-api { margin: 10px 0 8px; color: #8dc8ff; font: 9px "JetBrains Mono", "SFMono-Regular", Consolas, monospace; }
+.elon-work-monitor-settings { width: 100%; padding: 6px; color: #a7d3ff; background: #17283a; border: 1px solid #2d4964; border-radius: 5px; cursor: pointer; font: 600 10px "JetBrains Mono", "SFMono-Regular", Consolas, monospace; }
+.elon-work-monitor-settings:hover,
+.elon-work-monitor-settings:focus-visible { color: #fff; background: #1d9bf0; outline: none; }
+
+@media (prefers-color-scheme: light) {
+  .elon-work-check-button,
+  .elon-work-monitor-button { color: #173452; background: rgba(255, 255, 255, .96); border-color: #9db6ce; }
+  .elon-work-check-popover,
+  .elon-work-monitor-panel { color: #1c2e42; background: rgba(255, 255, 255, .99); border-color: #b7c9da; box-shadow: 0 14px 34px rgba(30, 55, 80, .2); }
+  .elon-work-check-title,
+  .elon-work-monitor-panel > strong { color: #13263a; }
+  .elon-work-check-status { color: #1769aa; }
+  .elon-work-check-detail,
+  .elon-work-monitor-status { color: #5d7185; }
+  .elon-work-check-row { color: #4e6377; }
+  .elon-work-monitor-grid > div { background: #f1f6fa; border-color: #d4e0ea; }
+  .elon-work-monitor-grid strong { color: #173452; }
+  .elon-work-monitor-grid span { color: #6d8092; }
+  .elon-work-monitor-api { color: #1769aa; }
+}
+
+@media (max-width: 700px) {
+  .elon-work-monitor { top: auto; right: 8px; bottom: 12px; width: 154px; transform: none; }
+  .elon-work-check-popover { right: auto; left: 0; top: calc(100% + 8px); }
+}

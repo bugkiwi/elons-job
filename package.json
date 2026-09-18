@@ -1,0 +1,17 @@
+{
+  "name": "elons-work-extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A local-first Chrome MV3 extension that hides high-confidence sexual and solicitation replies on X.",
+  "type": "commonjs",
+  "scripts": {
+    "test": "node --test",
+    "test:coverage": "node --test --experimental-test-coverage",
+    "check": "node --check src/shared/core.js && node --check src/background.js && node --check src/content.js && node --check src/popup.js && node --check src/settings.js && node --check src/onboarding.js && node --check scripts/benchmark.mjs",
+    "package": "node scripts/package.mjs",
+    "benchmark": "node scripts/benchmark.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

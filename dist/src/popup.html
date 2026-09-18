@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Elon的工作</title>
+  <link rel="stylesheet" href="styles/app.css">
+</head>
+<body class="ew-popup">
+  <div class="ew-shell">
+    <main class="ew-popup-main">
+      <header class="ew-popup-hero">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div id="shield" class="ew-shield">◈</div>
+          <div>
+            <div style="display:flex;align-items:center;gap:7px">
+              <h1>Elon的工作</h1><span class="ew-badge">MV3</span>
+            </div>
+            <p>X 评论区 · Precision Purge</p>
+          </div>
+        </div>
+        <label class="ew-toggle" title="启用保护"><input id="enabledToggle" type="checkbox"><span></span></label>
+      </header>
+
+      <section id="connectPanel" class="ew-popup-connect prominent ew-hidden" aria-labelledby="connectTitle">
+        <span class="ew-kicker">STEP 01 / CONNECT</span>
+        <h2 id="connectTitle">先连接 TypeSafe，保护才会生效</h2>
+        <p>API Key 只存储在当前浏览器中，用于直接请求 TypeSafe。没有 Key 时插件保持放行。</p>
+        <div class="ew-popup-key"><input id="apiKeyInput" class="ew-input" type="password" autocomplete="off" placeholder="apikey_…"><button id="saveKeyButton" class="ew-button primary">测试并连接</button></div>
+        <p id="connectMessage" class="ew-form-error ew-hidden"></p>
+        <button id="onboardingButton" class="ew-button ghost small" style="margin-top:8px;width:100%">打开安装引导</button>
+      </section>
+
+      <section class="ew-card ew-card-pad ew-popup-status" aria-labelledby="statusTitle">
+        <div class="ew-card-header">
+          <div><h2 id="statusTitle" class="ew-card-title">保护状态</h2><p id="statusDescription" class="ew-card-subtitle">正在读取本地配置…</p></div>
+          <span id="statusBadge" class="ew-chip">CHECKING</span>
+        </div>
+        <div class="ew-grid ew-grid-3">
+          <div class="ew-metric"><span class="ew-metric-label">本页已检查</span><strong id="checkedCount" class="ew-metric-value">—</strong></div>
+          <div class="ew-metric"><span class="ew-metric-label">已隐藏</span><strong id="hiddenCount" class="ew-metric-value red">—</strong></div>
+          <div class="ew-metric"><span class="ew-metric-label">API 请求</span><strong id="requestCount" class="ew-metric-value green">—</strong></div>
+        </div>
+      </section>
+
+      <section style="margin-top:12px" aria-labelledby="rulesTitle">
+        <div class="ew-card-header" style="margin-bottom:8px"><div><h2 id="rulesTitle" class="ew-card-title">启用的过滤规则</h2><p class="ew-card-subtitle">阈值越高，越偏向减少误伤</p></div><span id="ruleCount" class="ew-chip">0</span></div>
+        <div id="ruleList" class="ew-rule-list"></div>
+      </section>
+
+      <div class="ew-popup-bottom">
+        <span id="apiStatus"><span class="ew-dot warn"></span> 未连接 TypeSafe</span>
+        <button id="settingsButton" class="ew-button ghost small">设置中心 ↗</button>
+      </div>
+    </main>
+  </div>
+  <div id="toast" class="ew-toast ew-hidden" role="status"></div>
+  <script src="shared/core.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
