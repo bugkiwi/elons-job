@@ -60,8 +60,11 @@ test('popup puts first-time API setup before telemetry and uses the TypeSafe key
   const popup = fs.readFileSync(path.join(root, 'src/popup.html'), 'utf8');
   assert.ok(popup.indexOf('id="connectPanel"') < popup.indexOf('id="statusTitle"'));
   assert.match(popup, /placeholder="apikey_…"/);
+  assert.match(popup, /href="https:\/\/typesafe\.ai\//);
   assert.match(fs.readFileSync(path.join(root, 'src/onboarding.html'), 'utf8'), /placeholder="apikey_…"/);
+  assert.match(fs.readFileSync(path.join(root, 'src/onboarding.html'), 'utf8'), /href="https:\/\/typesafe\.ai\//);
   assert.match(fs.readFileSync(path.join(root, 'src/settings.html'), 'utf8'), /id="checkControlsToggle"/);
+  assert.match(fs.readFileSync(path.join(root, 'src/settings.html'), 'utf8'), /href="https:\/\/typesafe\.ai\//);
   assert.match(fs.readFileSync(path.join(root, 'src/settings.js'), 'utf8'), /showCheckControls/);
 });
 

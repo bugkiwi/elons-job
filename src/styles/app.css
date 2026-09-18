@@ -132,6 +132,8 @@ body.ew-popup { width: 380px; min-width: 380px; }
 .ew-popup-connect p { margin: 0 0 11px; color: var(--ew-muted); font-size: 11px; }
 .ew-popup-key { display: flex; gap: 6px; }
 .ew-popup-key .ew-input { min-width: 0; }
+.ew-key-link { margin: 4px 0 10px; color: var(--ew-blue-soft); text-decoration: none; }
+.ew-key-link:hover { color: var(--ew-text); text-decoration: none; }
 .ew-popup-bottom { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 13px; color: var(--ew-muted); font-size: 10px; }
 .ew-popup-status { padding: 12px; }
 .ew-popup-status .ew-card-header { align-items: center; gap: 8px; margin-bottom: 9px; }
