@@ -7,8 +7,9 @@
   "scripts": {
     "test": "node --test",
     "test:coverage": "node --test --experimental-test-coverage",
-    "check": "node --check src/shared/core.js && node --check src/background.js && node --check src/content.js && node --check src/popup.js && node --check src/settings.js && node --check src/onboarding.js && node --check scripts/benchmark.mjs",
+    "check": "node --check src/shared/core.js && node --check src/background.js && node --check src/content.js && node --check src/popup.js && node --check src/settings.js && node --check src/onboarding.js && node --check scripts/benchmark.mjs && node --check scripts/package-crx.mjs",
     "package": "node scripts/package.mjs",
+    "package:crx": "node scripts/package-crx.mjs",
     "benchmark": "node scripts/benchmark.mjs"
   },
   "engines": {

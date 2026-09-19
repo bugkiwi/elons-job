@@ -139,12 +139,11 @@ body.ew-popup { width: 380px; min-width: 380px; }
 .ew-popup-status .ew-card-header { align-items: center; gap: 8px; margin-bottom: 9px; }
 .ew-popup-status .ew-card-header > div { min-width: 0; display: flex; align-items: baseline; gap: 8px; }
 .ew-popup-status .ew-card-title { flex: 0 0 auto; font-size: 14px; white-space: nowrap; }
-.ew-popup-status .ew-card-subtitle { min-width: 0; overflow: hidden; margin: 0; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; }
 .ew-popup-status .ew-chip { flex: 0 0 auto; white-space: nowrap; }
 .ew-popup-status .ew-grid-3 { gap: 8px; }
-.ew-popup-status .ew-metric { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; padding: 8px 9px; }
-.ew-popup-status .ew-metric-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 9px; }
-.ew-popup-status .ew-metric-value { margin-top: 0; font-size: 19px; }
+.ew-popup-status .ew-metric { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; padding: 9px; }
+.ew-popup-status .ew-metric-value { order: -1; margin-top: 0; font-size: 23px; line-height: 1.05; }
+.ew-popup-status .ew-metric-label { overflow: hidden; max-width: 100%; color: var(--ew-muted); text-overflow: ellipsis; white-space: nowrap; font-size: 9px; }
 
 /* Settings */
 .ew-settings-layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 18px; align-items: start; }

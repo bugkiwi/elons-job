@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Elon 的工作 Chrome 扩展隐私政策：说明 X 评论内容、TypeSafe API Key 和本地数据的处理方式。">
+  <title>隐私政策 · Elon 的工作</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #14243a;
+      --muted: #5e7188;
+      --soft: #8091a5;
+      --line: #d8e1eb;
+      --paper: #fbfcfe;
+      --wash: #eef4f8;
+      --blue: #1769aa;
+      --green: #0c9b70;
+      --green-wash: #e5f6ef;
+      --serif: Georgia, "Times New Roman", serif;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font: 15px/1.75 var(--sans);
+    }
+    a { color: var(--blue); text-underline-offset: 3px; }
+    a:hover { color: #0e4e80; }
+    .page {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 38px 0 72px;
+    }
+    .masthead {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 28px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .brand img {
+      width: 54px;
+      height: 54px;
+      border-radius: 14px;
+      box-shadow: 0 8px 20px rgba(20, 36, 58, .14);
+    }
+    .eyebrow {
+      margin: 0 0 6px;
+      color: var(--green);
+      font: 700 11px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .brand-name { margin: 0; font-size: 18px; font-weight: 750; letter-spacing: -.03em; }
+    .brand-note { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+    .meta {
+      padding: 10px 0 0 18px;
+      border-left: 2px solid var(--green);
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .meta strong { display: block; color: var(--ink); font-size: 13px; }
+    .layout {
+      display: grid;
+      grid-template-columns: 220px minmax(0, 680px);
+      gap: clamp(34px, 8vw, 96px);
+      justify-content: center;
+      padding-top: 62px;
+    }
+    .intro { grid-column: 1 / -1; max-width: 760px; margin-bottom: 4px; }
+    h1, h2 { letter-spacing: -.045em; }
+    h1 {
+      max-width: 720px;
+      margin: 0;
+      font: 600 clamp(38px, 6vw, 68px)/.98 var(--serif);
+    }
+    .lede { max-width: 650px; margin: 22px 0 0; color: var(--muted); font-size: 18px; line-height: 1.65; }
+    .toc {
+      position: sticky;
+      top: 24px;
+      align-self: start;
+      padding-top: 5px;
+    }
+    .toc-label {
+      margin: 0 0 12px;
+      color: var(--soft);
+      font: 700 10px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .toc a { display: block; padding: 7px 0; color: var(--muted); text-decoration: none; font-size: 13px; }
+    .toc a:hover { color: var(--blue); }
+    .toc .active-line { width: 28px; height: 2px; margin: 17px 0 9px; background: var(--green); }
+    .content { min-width: 0; }
+    .notice {
+      margin: 0 0 42px;
+      padding: 18px 20px;
+      border-left: 3px solid var(--green);
+      background: var(--green-wash);
+    }
+    .notice strong { display: block; margin-bottom: 4px; font-size: 15px; }
+    .notice p { margin: 0; color: #3f665a; }
+    section { scroll-margin-top: 28px; padding: 0 0 38px; }
+    section + section { padding-top: 34px; border-top: 1px solid var(--line); }
+    h2 { margin: 0 0 14px; font-size: 25px; line-height: 1.2; }
+    h3 { margin: 26px 0 6px; font-size: 16px; }
+    p { margin: 0 0 13px; }
+    ul { margin: 10px 0 0; padding-left: 21px; }
+    li + li { margin-top: 7px; }
+    .data-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+    .data-item { padding: 15px 16px; background: var(--wash); border: 1px solid var(--line); }
+    .data-item strong { display: block; margin-bottom: 3px; font-size: 14px; }
+    .data-item span { display: block; color: var(--muted); font-size: 13px; line-height: 1.55; }
+    code { padding: 2px 5px; color: #234c6e; background: #e8f0f6; border-radius: 4px; font-size: .92em; }
+    footer { margin-top: 58px; padding-top: 22px; border-top: 1px solid var(--line); color: var(--soft); font-size: 12px; }
+    footer a { margin-left: 12px; }
+    @media (max-width: 760px) {
+      .page { width: min(100% - 28px, 680px); padding-top: 22px; }
+      .masthead { display: block; }
+      .meta { display: inline-block; margin-top: 20px; }
+      .layout { display: block; padding-top: 42px; }
+      .toc { position: static; display: flex; flex-wrap: wrap; gap: 0 18px; margin: 30px 0 38px; padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+      .toc-label, .toc .active-line { flex-basis: 100%; }
+      .toc .active-line { margin: 0 0 6px; }
+      .data-grid { grid-template-columns: 1fr; }
+      h1 { font-size: clamp(40px, 14vw, 58px); }
+      .lede { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="masthead">
+      <div class="brand">
+        <img src="assets/icon128.png" alt="Elon 的工作图标">
+        <div>
+          <p class="eyebrow">Privacy / 01</p>
+          <p class="brand-name">Elon 的工作</p>
+          <p class="brand-note">X 评论区 · Precision Purge</p>
+        </div>
+      </div>
+      <div class="meta"><strong>隐私政策</strong>生效日期：2026-09-19</div>
+    </header>
+
+    <main class="layout">
+      <div class="intro">
+        <h1>把数据边界<br>写清楚。</h1>
+        <p class="lede">这份政策说明 Elon 的工作如何处理 X 评论内容、TypeSafe API Key、本地缓存与统计信息。扩展只为提供评论过滤功能而处理必要数据。</p>
+      </div>
+
+      <nav class="toc" aria-label="页面目录">
+        <p class="toc-label">On this page</p>
+        <div class="active-line" aria-hidden="true"></div>
+        <a href="#scope">适用范围</a>
+        <a href="#data">处理哪些数据</a>
+        <a href="#sharing">如何共享</a>
+        <a href="#controls">你的控制权</a>
+        <a href="#contact">联系与更新</a>
+      </nav>
+
+      <div class="content">
+        <div class="notice">
+          <strong>一句话说明</strong>
+          <p>扩展会把 X Tweet Detail 回复中的用户名和评论正文发送给 TypeSafe，用于内容分类；我们不建立开发者后端，不出售数据，也不用于广告画像。</p>
+        </div>
+
+        <section id="scope">
+          <h2>适用范围</h2>
+          <p>本政策适用于 Chrome 扩展“Elon 的工作”（以下简称“扩展”）及其在 X（<code>x.com</code>）Tweet Detail 页面中的评论过滤功能。</p>
+          <p>扩展只处理回复，不处理主帖正文、首页推荐流或私信。扩展开发者不是 X 或 TypeSafe 的官方代表。</p>
+        </section>
+
+        <section id="data">
+          <h2>处理哪些数据</h2>
+          <div class="data-grid">
+            <div class="data-item"><strong>X 用户名与评论正文</strong><span>从当前 Tweet Detail 的回复中读取，用于生成过滤判定；正文可能包含 emoji、标点和必要的结构信号。</span></div>
+            <div class="data-item"><strong>TypeSafe API Key</strong><span>由用户主动输入，保存在当前浏览器的本地存储中，仅用于向 TypeSafe 发起鉴权请求。</span></div>
+            <div class="data-item"><strong>本地配置与统计</strong><span>包括启用状态、规则、阈值、检查数量、隐藏数量和请求数量，用于维持扩展设置与界面显示。</span></div>
+            <div class="data-item"><strong>临时分类缓存</strong><span>扩展使用浏览器会话存储缓存重复评论的分类结果，缓存 key 使用内容和规则的 hash，不保存评论原文。</span></div>
+          </div>
+          <h3>不会收集的内容</h3>
+          <p>扩展不会读取或收集浏览历史、Cookie、X 登录凭证、私信、图片、视频、头像内容或主帖正文，也不会建立用户画像。</p>
+        </section>
+
+        <section id="use">
+          <h2>如何使用数据</h2>
+          <ul>
+            <li>将用户名和评论正文发送给 TypeSafe，获取色情、性暗示、色情引流和 spam 规则的概率结果。</li>
+            <li>在本地结合规则阈值、页面重复模板、emoji 结构和不可见字符信号决定是否隐藏评论。</li>
+            <li>使用本地配置、统计和临时缓存，减少重复请求并控制 API 成本。</li>
+          </ul>
+          <p>数据不会用于个性化广告、出售、与无关第三方共享或训练开发者自己的用户画像。</p>
+        </section>
+
+        <section id="sharing">
+          <h2>如何共享数据</h2>
+          <p>为完成评论分类，评论相关内容会通过 HTTPS 发送至 <a href="https://typesafe.ai/" target="_blank" rel="noopener noreferrer">TypeSafe</a> API。TypeSafe 对收到的数据的处理、保留和删除受其自身服务条款与隐私政策约束；建议用户同时阅读 TypeSafe 的相关政策。</p>
+          <p>扩展开发者不运营用于接收评论内容的服务器，也不会人工查看评论内容。除 TypeSafe 这一提供分类服务的必要服务商外，扩展不会向其他第三方共享这些内容。</p>
+          <p>API Key 不会发送给扩展开发者；它只在浏览器本地保存，并作为请求凭证发送给 TypeSafe。</p>
+        </section>
+
+        <section id="security">
+          <h2>安全与保留</h2>
+          <ul>
+            <li>扩展使用 HTTPS 与 TypeSafe 通信。</li>
+            <li>API Key 由 service worker 读取，不写入 X 页面 DOM、URL 或调试日志。</li>
+            <li>用户可以在设置中心更换或删除 API Key，并清空本地分类缓存。</li>
+            <li>卸载扩展会移除其浏览器本地存储；TypeSafe 侧的数据保留由 TypeSafe 的政策决定。</li>
+          </ul>
+          <p>任何网络错误、API 超时、鉴权失败或配额耗尽时，扩展会保持评论显示，不会在不确定时隐藏内容。</p>
+        </section>
+
+        <section id="controls">
+          <h2>你的控制权</h2>
+          <p>你可以随时暂停保护、关闭单项规则、修改阈值、关闭评论检查按钮、删除 API Key 或清除本地缓存。扩展只改变本地页面显示，不删除或修改 X 上的原评论。</p>
+          <p>首次输入 API Key 前，请确认你理解并同意：评论用户名和正文会被发送给 TypeSafe 进行分类。</p>
+        </section>
+
+        <section id="contact">
+          <h2>联系与政策更新</h2>
+          <p>如果你对数据处理有疑问或希望报告问题，可以通过项目的 <a href="https://github.com/bugkiwi/elons-job/issues" target="_blank" rel="noopener noreferrer">GitHub Issues</a> 联系维护者。</p>
+          <p>如果扩展的数据处理方式发生变化，我们会更新本页面的生效日期，并在扩展界面中提供相应提示。继续使用更新后的扩展即表示你已阅读最新政策。</p>
+          <p>本扩展的数据使用遵循 <a href="https://developer.chrome.com/docs/webstore/program-policies/user-data-faq" target="_blank" rel="noopener noreferrer">Chrome Web Store User Data Policy</a> 及 Limited Use 要求：数据只用于提供评论过滤这一单一用户功能，不用于广告或无关用途。</p>
+        </section>
+      </div>
+    </main>
+
+    <footer>
+      © 2026 Elon 的工作 · 本页面为公开隐私政策
+      <a href="https://typesafe.ai/" target="_blank" rel="noopener noreferrer">TypeSafe</a>
+      <a href="https://github.com/bugkiwi/elons-job" target="_blank" rel="noopener noreferrer">项目主页</a>
+    </footer>
+  </div>
+</body>
+</html>

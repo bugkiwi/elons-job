@@ -2,6 +2,8 @@
 
 一个本地优先的 Chrome Manifest V3 扩展：只处理 X (`x.com/{user}/status/{id}`) 详情页的回复，使用用户自己的 TypeSafe Jev API Key，对高置信度的色情、性暗示和色情引流评论显示可恢复的隐藏占位符。
 
+[隐私政策](privacy.html)
+
 ## 本地安装
 
 ```bash
@@ -12,6 +14,17 @@ npm run benchmark
 ```
 
 打开 `chrome://extensions`，开启“开发者模式”，点击“加载已解压的扩展程序”，选择 `dist/`。第一次安装会自动打开 onboarding。
+
+### CRX 安装包
+
+CRX3 打包需要你自己的 RSA 私钥。私钥只用于本地签名，不要提交到仓库：
+
+```bash
+openssl genrsa -out /path/to/elons-work-private.pem 2048
+CRX_PRIVATE_KEY=/path/to/elons-work-private.pem bun run package:crx
+```
+
+也可以显式传参：`bun run package:crx -- --key=/path/to/elons-work-private.pem --output=/path/to/elons-work.crx`。默认产物为 `dist/elons-work.crx`。
 
 ## 效果预览
 

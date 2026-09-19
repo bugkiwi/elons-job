@@ -111,6 +111,39 @@ test('spam score alone does not hide a plain single comment', () => {
   assert.equal(result.shouldHide, false);
 });
 
+test('spam model does not hide a plain repeated template without emoji structure', () => {
+  const spamRule = E.DEFAULT_RULES.find((rule) => rule.id === 'spam_behavior');
+  const content = E.composeComment({ text: '恭喜发财，祝福你有美好的一天。', templateCount: 4 });
+  const result = E.buildDecision({ answers: { spam_behavior: { noul: 0.99 } } }, [spamRule], { content });
+  assert.equal(result.localSignals.spam.templateMatches, 4);
+  assert.equal(result.localSignals.spam.matched, false);
+  assert.equal(result.shouldHide, false);
+});
+
+test('emoji cluster structure catches a single suspicious template with moderate model support', () => {
+  const spamRule = E.DEFAULT_RULES.find((rule) => rule.id === 'spam_behavior');
+  const content = E.composeComment({ text: '应该没人比我玩的开了吧🌺🙂我福不黑不信你看' });
+  const result = E.buildDecision({ answers: {
+    sexual_content: { noul: 0.48 },
+    sexual_solicitation: { noul: 0.06 },
+    spam_behavior: { noul: 0.20 }
+  } }, [spamRule, E.DEFAULT_RULES[0], E.DEFAULT_RULES[1]], { content });
+  assert.equal(result.localSignals.spam.emojiClusterTemplate, true);
+  assert.equal(result.shouldHide, true);
+  assert.equal(result.matches.some((match) => match.source === 'emoji-cluster-signal'), true);
+});
+
+test('natural emoji-separated prose does not trigger the single-comment spam signal', () => {
+  const content = E.composeComment({ text: '今天的晚霞真漂亮🌇，回家路上听了喜欢的歌🎧。' });
+  const result = E.buildDecision({ answers: {
+    sexual_content: { noul: 0.48 },
+    sexual_solicitation: { noul: 0.06 },
+    spam_behavior: { noul: 0.20 }
+  } }, E.DEFAULT_RULES, { content });
+  assert.equal(result.localSignals.spam.emojiClusterTemplate, false);
+  assert.equal(result.shouldHide, false);
+});
+
 test('invisible-character pollution is a spam signal after the text is cleaned', () => {
   const spamRule = E.DEFAULT_RULES.find((rule) => rule.id === 'spam_behavior');
   const dirty = '\u200d比\u2060我\u200c骚😟\u2060比\u200d我骚🌀';
@@ -129,6 +162,39 @@ test('emoji-obfuscated representative sexual phrase forces the sexual rule', () 
   assert.equal(result.localSignals.sexualObfuscation.matched, true);
   assert.equal(result.shouldHide, true);
   assert.equal(result.matches[0].source, 'emoji-obfuscation-signal');
+});
+
+test('combined builtin risk hides multiple moderate signals', () => {
+  const result = E.buildDecision({ answers: {
+    sexual_content: { noul: 0.57 },
+    sexual_solicitation: { noul: 0.13 },
+    spam_behavior: { noul: 0.41 }
+  } }, E.DEFAULT_RULES, { content: E.composeComment({ text: '那一夜你☝没有拒绝我🔥😍不是人机 - L' }) });
+  assert.ok(Math.abs(result.combinedRisk.score - 1.11) < 1e-9);
+  assert.deepEqual(result.combinedRisk.qualifyingRuleIds, ['sexual_content', 'spam_behavior']);
+  assert.equal(result.combinedRisk.matched, true);
+  assert.equal(result.matches.some((match) => match.source === 'combined-risk-signal'), true);
+  assert.equal(result.shouldHide, true);
+});
+
+test('combined builtin risk does not hide one moderate signal', () => {
+  const result = E.buildDecision({ answers: {
+    sexual_content: { noul: 0.57 },
+    sexual_solicitation: { noul: 0.13 },
+    spam_behavior: { noul: 0.39 }
+  } }, E.DEFAULT_RULES, { content: E.composeComment({ text: '那一夜你☝没有拒绝我🔥😍不是人机 - L' }) });
+  assert.equal(result.combinedRisk.matched, false);
+});
+
+test('combined builtin risk ignores ordinary no-emoji model overlap', () => {
+  const result = E.buildDecision({ answers: {
+    sexual_content: { noul: 0.44 },
+    sexual_solicitation: { noul: 0.67 },
+    spam_behavior: { noul: 0.79 }
+  } }, E.DEFAULT_RULES, { content: E.composeComment({ text: '我发的不是普通内容，想看完整版就进群。' }) });
+  assert.equal(result.combinedRisk.structuralSupport, false);
+  assert.equal(result.combinedRisk.matched, false);
+  assert.equal(result.shouldHide, false);
 });
 
 test('disabled rules never produce a match', () => {

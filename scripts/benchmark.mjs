@@ -70,7 +70,7 @@ async function classify(item) {
     if (!response.ok) return { id: item.id, error: `HTTP_${response.status}`, latencyMs: Date.now() - started };
     const payload = await response.json();
     const decision = core.buildDecision(payload, rules, { content: inspectionContent });
-    return { id: item.id, expected: item.label, spam: Boolean(item.spam), predicted: decision.shouldHide ? 'HIDE' : 'ALLOW', results: decision.results, matches: decision.matches.map((match) => ({ ruleId: match.ruleId, probability: match.probability, source: match.source || 'typesafe' })), latencyMs: Date.now() - started };
+    return { id: item.id, expected: item.label, spam: Boolean(item.spam), predicted: decision.shouldHide ? 'HIDE' : 'ALLOW', results: decision.results, combinedRisk: decision.combinedRisk, matches: decision.matches.map((match) => ({ ruleId: match.ruleId, probability: match.probability, combinedScore: match.combinedScore, source: match.source || 'typesafe' })), latencyMs: Date.now() - started };
   } catch (error) {
     return { id: item.id, error: error.name === 'TimeoutError' ? 'API_TIMEOUT' : 'API_UNAVAILABLE', latencyMs: Date.now() - started };
   }
@@ -110,6 +110,7 @@ function printDetailedResult(item, result) {
     console.log(`  - ${rule.name}: probability=${(probability * 100).toFixed(1)}% threshold=${(rule.threshold * 100).toFixed(0)}% ${status}`);
   }
   console.log(`matches: ${result.matches.length ? result.matches.map((match) => `${match.ruleId} ${(match.probability * 100).toFixed(1)}%`).join(', ') : 'none'}`);
+  if (result.combinedRisk) console.log(`combined-risk: score=${result.combinedRisk.score.toFixed(2)} threshold=${result.combinedRisk.threshold.toFixed(2)} qualifying=${result.combinedRisk.qualifyingRuleIds.join(',') || 'none'} ${result.combinedRisk.matched ? 'MATCH' : 'PASS'}`);
   console.log(`sent-content:\n${core.composeComment({ username: item.username, text: item.text, templateCount })}`);
 }
 

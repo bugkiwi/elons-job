@@ -40,7 +40,6 @@
     $('enabledToggle').checked = config.enabled;
     $('shield').classList.toggle('off', !config.enabled || !state.hasApiKey);
     $('statusTitle').textContent = config.enabled ? '保护状态' : '保护已暂停';
-    $('statusDescription').textContent = !state.hasApiKey ? '输入 TypeSafe API Key 后开始语义过滤' : config.enabled ? '只处理 X Tweet Detail 的回复，不触碰主帖正文' : '恢复保护后才会扫描新的评论';
     $('statusBadge').textContent = !state.hasApiKey ? 'KEY REQUIRED' : config.enabled ? 'SHIELD ON' : 'PAUSED';
     $('statusBadge').className = `ew-chip ${state.hasApiKey && config.enabled ? 'green' : 'amber'}`;
     $('checkedCount').textContent = String(stats.totalChecked || 0);

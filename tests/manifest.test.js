@@ -26,6 +26,15 @@ test('extension pages do not load remote scripts or remote fonts', () => {
   }
 });
 
+test('public privacy policy documents the TypeSafe data flow and user controls', () => {
+  const privacy = fs.readFileSync(path.join(root, 'privacy.html'), 'utf8');
+  assert.match(privacy, /TypeSafe/);
+  assert.match(privacy, /用户名和评论正文/);
+  assert.match(privacy, /API Key/);
+  assert.match(privacy, /Limited Use/);
+  assert.match(privacy, /GitHub Issues/);
+});
+
 test('content script does not read storage secrets or call TypeSafe directly', () => {
   const source = fs.readFileSync(path.join(root, 'src/content.js'), 'utf8');
   assert.equal(source.includes('chrome.storage'), false);
@@ -44,6 +53,10 @@ test('X-injected CSS is scoped to extension placeholder classes', () => {
   assert.equal(/(^|[,{\s])(?:html|body|\*)\s*[{,]/m.test(css), false);
   assert.match(css, /\.elon-work-placeholder/);
   assert.match(css, /\.elon-work-check-host/);
+  assert.match(css, /\.elon-work-check-host \{[\s\S]*width: 54px;/);
+  assert.match(css, /\.elon-work-check-popover \{[\s\S]*left: 54px;/);
+  assert.equal(css.includes('left: calc(100% + 8px)'), false);
+  assert.equal(css.includes('right: auto; left: 0; top: calc(100% + 8px)'), false);
   assert.match(css, /\.elon-work-monitor/);
 });
 
@@ -54,6 +67,8 @@ test('content inspection sends username and supports force recheck controls', ()
   assert.match(source, /setControlsSuppressed\(article, true\)/);
   assert.match(source, /force: Boolean\(opts\.force\)/);
   assert.match(source, /E\.MESSAGE\.OPEN_SETTINGS/);
+  assert.match(source, /commentStatuses: new Map\(\)/);
+  assert.match(source, /function transitionPageStatus\(commentKey, next\)/);
 });
 
 test('popup puts first-time API setup before telemetry and uses the TypeSafe key prefix', () => {
@@ -72,10 +87,12 @@ test('popup status metrics stay compact and horizontal on the narrow popup viewp
   const popup = fs.readFileSync(path.join(root, 'src/popup.html'), 'utf8');
   const css = fs.readFileSync(path.join(root, 'src/styles/app.css'), 'utf8');
   const popupScript = fs.readFileSync(path.join(root, 'src/popup.js'), 'utf8');
-  assert.match(popup, /累计已检查/);
-  assert.match(popup, /累计已隐藏/);
+  assert.equal(popup.includes('只处理 X Tweet Detail'), false);
+  assert.match(popup, /<strong id="checkedCount"[^>]*>—<\/strong><span class="ew-metric-label">累计检查<\/span>/);
+  assert.match(popup, /<strong id="hiddenCount"[^>]*>—<\/strong><span class="ew-metric-label">累计隐藏<\/span>/);
   assert.match(popupScript, /stats\.totalChecked/);
   assert.match(popupScript, /stats\.totalHidden/);
   assert.match(popup, /class="ew-card ew-card-pad ew-popup-status"/);
   assert.equal(css.includes('body.ew-popup .ew-popup-status .ew-grid-3 { grid-template-columns: repeat(3'), true);
+  assert.match(css, /\.ew-popup-status \.ew-metric \{[\s\S]*flex-direction: column;/);
 });

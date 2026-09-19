@@ -6,6 +6,7 @@
     config: null,
     route: '',
     processed: new Map(),
+    commentStatuses: new Map(),
     revealed: new Set(),
     controls: new Map(),
     boundAnchors: new WeakSet(),
@@ -75,9 +76,12 @@
     return 'error';
   }
 
-  function transitionPageStatus(previous, next) {
+  function transitionPageStatus(commentKey, next) {
+    const previous = state.commentStatuses.get(commentKey);
     const oldStatus = statusOf(previous);
     const newStatus = statusOf(next);
+    if (!oldStatus && newStatus) state.pageChecked += 1;
+    if (oldStatus && !newStatus) state.pageChecked = Math.max(0, state.pageChecked - 1);
     if (oldStatus === 'hidden') state.pageHidden = Math.max(0, state.pageHidden - 1);
     if (oldStatus === 'safe') state.pageSafe = Math.max(0, state.pageSafe - 1);
     if (oldStatus === 'pending') state.pagePending = Math.max(0, state.pagePending - 1);
@@ -86,6 +90,8 @@
     if (newStatus === 'safe') state.pageSafe += 1;
     if (newStatus === 'pending') state.pagePending += 1;
     if (newStatus === 'error') state.pageErrors += 1;
+    if (next) state.commentStatuses.set(commentKey, next);
+    else state.commentStatuses.delete(commentKey);
   }
 
   function removePlaceholder(article) {
@@ -126,7 +132,10 @@
     details.className = 'elon-work-placeholder-details';
     const config = state.config || {};
     details.textContent = state.config && state.config.showPlaceholder === false ? '点击“查看评论”恢复' : matches.map((match) => {
-      const score = config.showConfidence === false ? '' : ` · ${Math.round(match.probability * 100)}%`;
+      if (config.showConfidence === false) return match.name;
+      const score = match.source === 'combined-risk-signal'
+        ? ` · 合计 ${Math.round(match.combinedScore * 100)}%`
+        : ` · ${Math.round(match.probability * 100)}%`;
       return `${match.name}${score}`;
     }).join('  ');
     copy.appendChild(details);
@@ -143,7 +152,7 @@
       const control = Array.from(state.controls.values()).find((candidate) => candidate.article === article);
       const previous = control && state.processed.get(control.identity);
       const revealedResult = { ok: true, shouldHide: false, results: previous && previous.results || {}, matches: [] };
-      transitionPageStatus(previous, revealedResult);
+      transitionPageStatus(articleKey(comment), revealedResult);
       if (control) state.processed.set(control.identity, revealedResult);
       applySafe(article);
       report('revealed');
@@ -248,7 +257,7 @@
       control.host.classList.remove('is-visible');
       return;
     }
-    const width = 50;
+    const width = 54;
     const height = 26;
     const gap = 6;
     const preferredLeft = rect.right + gap;
@@ -490,6 +499,7 @@
     const identity = opts.identity || `${key}:${hash}`;
     const control = ensureCheckControl(article, comment, identity, hash);
     const previous = state.processed.get(identity);
+    const knownComment = state.commentStatuses.has(key);
     if (opts.force) {
       state.revealed.delete(key);
       article.removeAttribute('data-elon-work-revealed');
@@ -505,23 +515,18 @@
     if (opts.force && previous && previous.pending) return;
 
     const pending = { pending: true };
-    transitionPageStatus(previous, pending);
+    transitionPageStatus(key, pending);
     state.processed.set(identity, pending);
     article.dataset.elonWorkState = 'pending';
     if (config.preload) article.classList.add('elon-work-pending');
-    if (!previous) {
-      state.pageChecked += 1;
-      report('checked');
-    } else {
-      report('recheck');
-    }
+    report(knownComment ? 'recheck' : 'checked');
     renderCheckControl(control);
     const response = await send(E.MESSAGE.CLASSIFY_COMMENT, {
       tweetId: comment.tweetId,
       text: inspectionContent,
       force: Boolean(opts.force)
     });
-    transitionPageStatus(pending, response);
+    transitionPageStatus(key, response);
     state.processed.set(identity, response || { ok: false, error: 'NO_RESPONSE' });
     if (response && Number.isFinite(response.latencyMs)) state.pageLastLatency = response.latencyMs;
     renderCheckControl(control);
@@ -576,6 +581,7 @@
     state.pagePending = 0;
     state.pageErrors = 0;
     state.pageLastLatency = 0;
+    state.commentStatuses.clear();
     clearControls();
     clearAppliedStates();
     renderMonitor();

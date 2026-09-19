@@ -6,6 +6,10 @@
   const STATS_KEY = 'elonsWorkStats';
   const CACHE_KEY = 'elonsWorkCache';
   const MODEL_VERSION = 'jev-latest';
+  const DECISION_VERSION = 'decision-v2-combined-risk';
+  const COMBINED_RISK_RULE_IDS = ['sexual_content', 'sexual_solicitation', 'spam_behavior'];
+  const COMBINED_RISK_THRESHOLD = 1.05;
+  const COMBINED_RISK_MIN_COMPONENT = 0.4;
   const API_ENDPOINT = 'https://api.typesafe.ai/v1/systemone';
   const MAX_COMMENT_LENGTH = 4000;
   const MESSAGE = {
@@ -47,7 +51,7 @@
       id: 'spam_behavior',
       name: '垃圾评论 / 模板刷屏',
       description: '隐藏重复模板、低质批量评论、异常 emoji 组合和引流式刷屏内容。',
-      instructions: '判断 `content` 是否为垃圾评论、批量模板刷屏或低质互动诱导。`page_template_matches >= 2` 是强信号：去掉 emoji、标点和可替换 token 后句式重复时，即使表面是祝福或普通中文也判 true。`invisible_char_count >= 3` 且伴随 emoji 或模板结构时，也判为故意污染/规避检测。重点识别复制粘贴骨架、随机 emoji 插入、空泛互动诱导和批量生成；单条自然评论、孤立 emoji 或单个不可见字符不算 spam。',
+      instructions: '判断 `content` 是否为垃圾评论、批量模板刷屏或低质互动诱导。`page_template_matches >= 2` 是强信号：去掉 emoji、标点和可替换 token 后句式重复时，即使表面是祝福或普通中文也判 true。`invisible_char_count >= 3` 且伴随 emoji 或模板结构时，也判为故意污染/规避检测。连续两个以上 emoji 夹在较长、无自然标点的句式中，且色情/垃圾语义得到中等支持时，也视为单条模板化 spam。重点识别复制粘贴骨架、随机 emoji 插入、空泛互动诱导和批量生成；单条自然评论、孤立 emoji 或单个不可见字符不算 spam。',
       trueCriteria: '去掉 emoji/标点/可替换 token 后的页面近重复句式，随机替换 emoji 的复制模板，或多个不可见字符污染与 emoji/模板结构同时出现；也可结合低质空泛、互动诱导、批量生成特征。',
       falseCriteria: '一次性正常评论、具体观点、真实对话、普通祝福或自然使用 emoji；没有重复/模板证据时不要仅凭短句或 emoji 判 spam。',
       threshold: 0.78,
@@ -267,11 +271,24 @@
   function localSpamSignal(content) {
     const templateMatches = readSignal(content, 'page_template_matches');
     const bodyEmojiCount = readSignal(content, 'body_emoji_count');
+    const bodyEmojiRuns = readSignal(content, 'body_emoji_runs');
+    const bodyEmojiMaxRun = readSignal(content, 'body_emoji_max_run');
     const invisibleCount = readSignal(content, 'invisible_char_count');
+    const bodyMatch = String(content || '').match(/body_without_emoji=([^;\n]*)/);
+    const body = bodyMatch ? bodyMatch[1] : '';
+    const compactBody = body.replace(/[\s\p{P}\p{S}]+/gu, '');
+    const emojiClusterTemplate = bodyEmojiCount >= 2
+      && bodyEmojiRuns === 1
+      && bodyEmojiMaxRun >= 2
+      && compactBody.length >= 16
+      && !/[，。！？,.!?;；:：]/u.test(body);
     return {
       templateMatches,
       bodyEmojiCount,
+      bodyEmojiRuns,
+      bodyEmojiMaxRun,
       invisibleCount,
+      emojiClusterTemplate,
       matched: (templateMatches >= 2 && bodyEmojiCount >= 1) || (invisibleCount >= 3 && (bodyEmojiCount >= 1 || templateMatches >= 2))
     };
   }
@@ -282,6 +299,28 @@
     const body = match ? match[1] : '';
     const representativeAnchor = /只进身体|搞\s*h\s*s|小马开大车|比我好看的没我骚/i.test(body);
     return { bodyEmojiCount, representativeAnchor, matched: bodyEmojiCount >= 2 && representativeAnchor };
+  }
+
+  function combinedRiskSignal(results, rules, localSignals) {
+    const components = (rules || [])
+      .filter((rule) => rule.enabled !== false && COMBINED_RISK_RULE_IDS.includes(rule.id))
+      .map((rule) => ({ ruleId: rule.id, probability: Number(results[rule.id] || 0) }))
+      .filter((item) => Number.isFinite(item.probability));
+    const score = components.reduce((sum, item) => sum + item.probability, 0);
+    const qualifying = components.filter((item) => item.probability >= COMBINED_RISK_MIN_COMPONENT);
+    const structuralSupport = Boolean(localSignals && (
+      localSignals.spam.bodyEmojiCount >= 1
+      || localSignals.spam.templateMatches >= 2
+      || localSignals.spam.invisibleCount >= 3
+    ));
+    return {
+      score,
+      threshold: COMBINED_RISK_THRESHOLD,
+      minComponent: COMBINED_RISK_MIN_COMPONENT,
+      qualifyingRuleIds: qualifying.map((item) => item.ruleId),
+      structuralSupport,
+      matched: structuralSupport && qualifying.length >= 2 && score >= COMBINED_RISK_THRESHOLD
+    };
   }
 
   function buildDecision(response, rules, context) {
@@ -295,7 +334,9 @@
     for (const rule of rules || []) {
       const probability = getProbability(answers[rule.id]);
       results[rule.id] = probability;
-      const spamModelSupported = localSignals.spam.bodyEmojiCount >= 1 || localSignals.spam.templateMatches >= 2 || localSignals.spam.invisibleCount >= 3;
+      const emojiClusterModelSupported = localSignals.spam.emojiClusterTemplate
+        && ((results.sexual_content >= 0.45 && results.spam_behavior >= 0.15) || results.spam_behavior >= 0.45);
+      const spamModelSupported = localSignals.spam.bodyEmojiCount >= 1 || localSignals.spam.invisibleCount >= 3 || emojiClusterModelSupported;
       if (rule.enabled !== false && probability >= normalizeThreshold(rule.threshold) && (rule.id !== 'spam_behavior' || spamModelSupported)) {
         matches.push({
           ruleId: rule.id,
@@ -305,14 +346,17 @@
         });
       }
     }
+    localSignals.combinedRisk = combinedRiskSignal(results, rules, localSignals);
     const spamRule = (rules || []).find((rule) => rule.id === 'spam_behavior' && rule.enabled !== false);
-    if (spamRule && localSignals.spam.matched && !matches.some((match) => match.ruleId === spamRule.id)) {
+    const emojiClusterModelSupported = localSignals.spam.emojiClusterTemplate
+      && ((results.sexual_content >= 0.45 && results.spam_behavior >= 0.15) || results.spam_behavior >= 0.45);
+    if (spamRule && (localSignals.spam.matched || emojiClusterModelSupported) && !matches.some((match) => match.ruleId === spamRule.id)) {
       matches.push({
         ruleId: spamRule.id,
         name: spamRule.name,
         probability: Math.max(results[spamRule.id] || 0, normalizeThreshold(spamRule.threshold)),
         threshold: normalizeThreshold(spamRule.threshold),
-        source: 'page-template-signal'
+        source: localSignals.spam.matched ? 'page-template-signal' : 'emoji-cluster-signal'
       });
     }
     const sexualRule = (rules || []).find((rule) => rule.id === 'sexual_content' && rule.enabled !== false);
@@ -325,8 +369,18 @@
         source: 'emoji-obfuscation-signal'
       });
     }
+    if (localSignals.combinedRisk.matched) {
+      matches.push({
+        ruleId: 'combined_risk',
+        name: '综合风险',
+        probability: 1,
+        threshold: 1,
+        combinedScore: localSignals.combinedRisk.score,
+        source: 'combined-risk-signal'
+      });
+    }
     matches.sort((a, b) => b.probability - a.probability);
-    return { results, matches, localSignals, shouldHide: matches.length > 0 };
+    return { results, matches, localSignals, combinedRisk: localSignals.combinedRisk, shouldHide: matches.length > 0 };
   }
 
   function stableValue(value) {
@@ -375,7 +429,7 @@
   async function cacheKey(text, rules, model) {
     const normalized = normalizeText(text);
     const fingerprint = await rulesFingerprint(rules);
-    return hashText(stableStringify({ normalized, fingerprint, model: model || MODEL_VERSION }));
+    return hashText(stableStringify({ normalized, fingerprint, model: model || MODEL_VERSION, decisionVersion: DECISION_VERSION }));
   }
 
   function maskSecret(value) {
@@ -533,6 +587,7 @@
     STATS_KEY,
     CACHE_KEY,
     MODEL_VERSION,
+    DECISION_VERSION,
     API_ENDPOINT,
     MAX_COMMENT_LENGTH,
     MESSAGE,
@@ -557,6 +612,7 @@
     readAnswers,
     localSpamSignal,
     localObfuscatedSexualSignal,
+    combinedRiskSignal,
     buildDecision,
     stableStringify,
     hashText,
