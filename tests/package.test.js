@@ -5,14 +5,13 @@ const path = require('node:path');
 
 const root = path.join(__dirname, '..');
 
-test('CRX packaging command is documented and keeps signing keys external', () => {
+test('manual extension build is documented and targets an unpacked dist directory', () => {
   const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
-  const script = fs.readFileSync(path.join(root, 'scripts/package-crx.mjs'), 'utf8');
+  const script = fs.readFileSync(path.join(root, 'scripts/package.mjs'), 'utf8');
   const readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
-  const gitignore = fs.readFileSync(path.join(root, '.gitignore'), 'utf8');
-  assert.equal(packageJson.scripts['package:crx'], 'node scripts/package-crx.mjs');
-  assert.match(script, /CRX3 Signed Data/);
-  assert.match(script, /CRX_PRIVATE_KEY/);
-  assert.match(readme, /bun run package:crx/);
-  assert.match(gitignore, /dist\/\*\.crx/);
+  assert.equal(packageJson.scripts.package, 'node scripts/package.mjs');
+  assert.match(script, /Packaged extension in/);
+  assert.match(readme, /npm run package/);
+  assert.match(readme, /chrome:\/\/extensions/);
+  assert.match(readme, /`dist\/`/);
 });

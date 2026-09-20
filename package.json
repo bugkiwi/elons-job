@@ -2,6 +2,7 @@
   "name": "elons-work-extension",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "description": "A local-first Chrome MV3 extension that hides high-confidence sexual and solicitation replies on X.",
   "type": "commonjs",
   "scripts": {

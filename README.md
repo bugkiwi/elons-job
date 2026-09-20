@@ -4,7 +4,15 @@
 
 [隐私政策](privacy.html)
 
-## 本地安装
+[English](README.en.md)
+
+[MIT License](LICENSE)
+
+## 本地手动编译与安装
+
+环境要求：Node.js 20 或更高版本。
+
+在项目根目录执行以下命令，完成测试、检查并生成 Chrome 扩展产物：
 
 ```bash
 npm test
@@ -13,18 +21,7 @@ npm run package
 npm run benchmark
 ```
 
-打开 `chrome://extensions`，开启“开发者模式”，点击“加载已解压的扩展程序”，选择 `dist/`。第一次安装会自动打开 onboarding。
-
-### CRX 安装包
-
-CRX3 打包需要你自己的 RSA 私钥。私钥只用于本地签名，不要提交到仓库：
-
-```bash
-openssl genrsa -out /path/to/elons-work-private.pem 2048
-CRX_PRIVATE_KEY=/path/to/elons-work-private.pem bun run package:crx
-```
-
-也可以显式传参：`bun run package:crx -- --key=/path/to/elons-work-private.pem --output=/path/to/elons-work.crx`。默认产物为 `dist/elons-work.crx`。
+编译完成后，打开 `chrome://extensions`，开启“开发者模式”，点击“加载已解压的扩展程序”，选择项目下生成的 `dist/` 目录。第一次安装会自动打开 onboarding。
 
 ## 效果预览
 
