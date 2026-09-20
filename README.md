@@ -4,6 +4,8 @@
 
 [隐私政策](privacy.html)
 
+[Chrome Web Store 在线安装](https://chromewebstore.google.com/detail/elon%E7%9A%84%E5%B7%A5%E4%BD%9C/aillmgiicpcpnnggaahlkifchigmfome)
+
 [English](README.en.md)
 
 [MIT License](LICENSE)

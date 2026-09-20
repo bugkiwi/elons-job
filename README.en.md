@@ -4,6 +4,8 @@ A local-first Chrome Manifest V3 extension that only processes replies on X (`x.
 
 [Privacy Policy](privacy.html)
 
+[Install from the Chrome Web Store](https://chromewebstore.google.com/detail/elon%E7%9A%84%E5%B7%A5%E4%BD%9C/aillmgiicpcpnnggaahlkifchigmfome)
+
 [中文](README.md)
 
 [MIT License](LICENSE)
