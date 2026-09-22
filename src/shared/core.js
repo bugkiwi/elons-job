@@ -6,7 +6,7 @@
   const STATS_KEY = 'elonsWorkStats';
   const CACHE_KEY = 'elonsWorkCache';
   const MODEL_VERSION = 'jev-latest';
-  const DECISION_VERSION = 'decision-v2-combined-risk';
+  const DECISION_VERSION = 'decision-v3-decomposed-slop';
   const COMBINED_RISK_RULE_IDS = ['sexual_content', 'sexual_solicitation', 'spam_behavior'];
   const COMBINED_RISK_THRESHOLD = 1.05;
   const COMBINED_RISK_MIN_COMPONENT = 0.4;
@@ -62,6 +62,18 @@
   ];
 
   const SLOP_THRESHOLD = 0.70;
+  const SLOP_SIGNAL_IDS = Object.freeze({
+    hasSubstance: 'slop_has_substance',
+    genericSubstitutable: 'slop_generic_substitutable',
+    repetitiveFiller: 'slop_repetitive_filler',
+    policyAlignment: 'slop_policy_alignment'
+  });
+  const SLOP_SCORE_WEIGHTS = Object.freeze({
+    hasSubstance: 0.25,
+    genericSubstitutable: 0.25,
+    repetitiveFiller: 0.20,
+    policyAlignment: 0.30
+  });
   const SLOP_RULE = {
     id: 'slop_content',
     name: 'SLOP',
@@ -70,15 +82,15 @@
 只判断正文内容，不判断作者身份、政治立场、观点对错或受欢迎程度。
 
 当正文同时满足以下特征时倾向判为 SLOP：
-1. 信息增量低：缺少具体事实、细节、经验、推理、明确观点或有价值的新信息；
+1. 信息增量低：缺少具体事实、细节、经验、推理、具体观点或有价值的新信息；
 2. 存在明显模板化、重复、机械扩写、批量生成或空泛填充。
 
 不要仅因 AI 风格、长短、列表、营销、链接、情绪表达、语法问题或 engagement bait 判为 SLOP。
 
-包含具体事实、数字、技术细节、真实经历、明确观点、有效推理或独特观察时，应降低 SLOP 概率。
+包含具体事实、数字、技术细节、真实经历、具体观点、有效推理或独特观察时，应降低 SLOP 概率。
 `,
     trueCriteria: '信息增量低，并存在明显模板化、重复或填充特征。',
-    falseCriteria: '包含具体事实、细节、经验、观点、推理或其他实质信息。',
+    falseCriteria: '包含具体事实、细节、经验、具体观点、推理或其他实质信息。',
     threshold: SLOP_THRESHOLD,
     enabled: true,
     builtin: true
@@ -257,8 +269,7 @@
     const normalized = normalizeConfig(config);
     return {
       ...normalized.postRecognition,
-      threshold: normalized.postFiltering.threshold,
-      enabled: normalized.postRecognition.enabled && normalized.postFiltering.enabled,
+      threshold: normalized.postFiltering.threshold,      enabled: normalized.postRecognition.enabled && normalized.postFiltering.enabled,
       builtin: true
     };
   }
@@ -343,6 +354,49 @@
       };
       return questions;
     }, {});
+  }
+
+  function buildSlopQuestions(rule) {
+    const slopRule = rule || SLOP_RULE;
+    const policyInstructions = String(slopRule.instructions || SLOP_RULE.instructions).trim();
+    const policyTrue = String(slopRule.trueCriteria || SLOP_RULE.trueCriteria).trim();
+    const policyFalse = String(slopRule.falseCriteria || SLOP_RULE.falseCriteria).trim();
+    return {
+      [SLOP_SIGNAL_IDS.hasSubstance]: {
+        type: 'noul',
+        instructions: '判断正文是否包含实质信息。事实、数字、技术细节、亲身经验、明确理由、具体观点、有效推理或独特观察都算实质；短文本也可以有实质。单纯情绪、口号、泛化赞美/贬低、无细节结论或空泛套话不算。',
+        criteria: {
+          true: '正文至少提供一个具体、可辨识的信息点、理由、经验、细节、推理或独特观点。',
+          false: '正文基本只有情绪、口号、泛化评价、无细节结论、可替换套话或空泛填充。'
+        }
+      },
+      [SLOP_SIGNAL_IDS.genericSubstitutable]: {
+        type: 'noul',
+        instructions: '判断正文是否高度通用、可替换。设想把当前主题、人名、公司名或产品名换成一个无关主题；如果大部分措辞仍可原样成立，则倾向 true。不要因为文本短、口语化或只是自然 reaction 就额外提高概率；本问题只衡量可替换性。',
+        criteria: {
+          true: '核心表达可套用于大量无关主题，主要由通用赞美、贬低、宏大结论、口号或套话构成。',
+          false: '内容依赖当前主题的具体事实、关系、经验、细节或上下文，替换主题后会明显失真。'
+        }
+      },
+      [SLOP_SIGNAL_IDS.repetitiveFiller]: {
+        type: 'noul',
+        instructions: '判断正文是否通过重复同一意思、机械改写、冗余过渡句或无信息修饰来增加篇幅。简短的一次性反应不是重复填充；不同句子提供不同信息时也不是。',
+        criteria: {
+          true: '多个句子或片段反复表达同一结论，删除相当一部分文字后几乎不损失信息。',
+          false: '文本简洁，或各句分别增加新的事实、理由、细节、经验或论点。'
+        }
+      },
+      [SLOP_SIGNAL_IDS.policyAlignment]: {
+        type: 'noul',
+        instructions: `只判断正文是否符合下面这份总体 SLOP 规范。它只是综合信号之一，不要因为单一表面风格直接判 true。
+
+${policyInstructions}`,
+        criteria: {
+          true: policyTrue || '正文符合总体 SLOP 规范。',
+          false: policyFalse || '正文不符合总体 SLOP 规范。'
+        }
+      }
+    };
   }
 
   function getProbability(answer) {
@@ -486,10 +540,25 @@
   function buildSlopDecision(response, rule) {
     const answers = readAnswers(response);
     const slopRule = rule || SLOP_RULE;
-    const probability = getProbability(answers[slopRule.id]);
+    const signals = {
+      hasSubstance: getProbability(answers[SLOP_SIGNAL_IDS.hasSubstance]),
+      genericSubstitutable: getProbability(answers[SLOP_SIGNAL_IDS.genericSubstitutable]),
+      repetitiveFiller: getProbability(answers[SLOP_SIGNAL_IDS.repetitiveFiller]),
+      policyAlignment: getProbability(answers[SLOP_SIGNAL_IDS.policyAlignment])
+    };
+    const probability = clamp(
+      (1 - signals.hasSubstance) * SLOP_SCORE_WEIGHTS.hasSubstance
+      + signals.genericSubstitutable * SLOP_SCORE_WEIGHTS.genericSubstitutable
+      + signals.repetitiveFiller * SLOP_SCORE_WEIGHTS.repetitiveFiller
+      + signals.policyAlignment * SLOP_SCORE_WEIGHTS.policyAlignment,
+      0,
+      1
+    );
     const threshold = normalizeThreshold(slopRule.threshold);
     return {
       probability,
+      score: probability,
+      signals,
       threshold,
       shouldSlop: probability >= threshold
     };
@@ -518,7 +587,6 @@
     }
     return `fnv1a-${(hash >>> 0).toString(16).padStart(8, '0')}`;
   }
-
   async function hashText(value) {
     const source = String(value);
     if (root.crypto && root.crypto.subtle && root.TextEncoder) {
@@ -706,6 +774,8 @@
     DEFAULT_RULES,
     SLOP_RULE,
     SLOP_THRESHOLD,
+    SLOP_SIGNAL_IDS,
+    SLOP_SCORE_WEIGHTS,
     normalizePostRecognition,
     normalizePostFiltering,
     DEFAULT_CONFIG,
@@ -725,6 +795,7 @@
     templateFingerprint,
     composeComment,
     buildQuestions,
+    buildSlopQuestions,
     getProbability,
     readAnswers,
     localSpamSignal,
