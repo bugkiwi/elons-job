@@ -1,6 +1,6 @@
 # Elon的工作
 
-一个本地优先的 Chrome Manifest V3 扩展：只处理 X (`x.com/{user}/status/{id}`) 详情页的回复，使用用户自己的 TypeSafe Jev API Key，对高置信度的色情、性暗示和色情引流评论显示可恢复的隐藏占位符。
+一个本地优先的 Chrome Manifest V3 扩展：在 X (`x.com`) 上使用用户自己的 TypeSafe Jev API Key，对高置信度的色情、性暗示和色情引流评论显示可恢复的隐藏占位符，并为疑似 SLOP 的帖子正文叠加可交互印章。
 
 [隐私政策](privacy.html)
 
@@ -33,7 +33,9 @@ npm run benchmark
 
 命中的评论会被替换为可恢复的隐藏占位符；设置中心默认将每日 TypeSafe 请求上限设为 100,000，并提供缓存、并发和成本保护。
 
-过滤规则支持自定义：可以编辑规则名称、隐藏条件、排除条件和敏感度，用于适配不同社区的内容治理需求。
+设置中心将配置拆成两层：识别规范分别管理帖子正文 SLOP 与评论内容的模型判断说明；过滤规范分别管理帖子盖章/蒙层、SLOP 阈值，以及评论规则的启用状态、隐藏阈值和 Fail-Open 行为。自定义评论识别规则也可以单独添加和修改。
+
+帖子正文还会单独进行 SLOP 检测：命中低信息密度、模板化或明显生成式内容时，只叠加动画 `SLOP` 印章，不修改原文；鼠标移入帖子后印章会弱化。SLOP 判定与评论隐藏规则分开，并使用同一个 TypeSafe API Key。
 
 <p align="center">
   <img src="docs/screenshots/custom-rule-editor.png" alt="自定义评论过滤规则编辑器" width="720">
@@ -42,9 +44,9 @@ npm run benchmark
 ## 安全边界
 
 - API Key 只由 service worker 读取，存于 `chrome.storage.local`；popup、设置页只通过消息协议保存/测试。
-- content script 只向 service worker 发送 `{ tweetId, text }`，其中 `text` 合并了用户名和评论正文；不读取 cookie、history、X 登录信息或 root tweet 内容。
+- content script 只向 service worker 发送 `{ tweetId, text }`，其中 `text` 是待检查的帖子或评论正文（评论检查时会合并用户名）；不读取 cookie、history 或 X 登录信息。
 - TypeSafe 请求使用 `https://api.typesafe.ai/v1/systemone`；API 返回不符合预期、超时、401、429 或 5xx 时 Fail Open。
-- 缓存只使用用户名/评论内容、规则 fingerprint 和 model 的 hash 作为 key，不保存评论原文。
+- 缓存只使用帖子/评论内容、规则 fingerprint 和 model 的 hash 作为 key，不保存帖子或评论原文。
 - `manifest.json` 未申请 `tabs`、`history`、`cookies`、`webRequest` 或 `<all_urls>`。
 
 ## 测试覆盖

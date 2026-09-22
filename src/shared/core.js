@@ -18,6 +18,7 @@
     TEST_CONNECTION: 'TEST_CONNECTION',
     OPEN_ONBOARDING: 'OPEN_ONBOARDING',
     CLASSIFY_COMMENT: 'CLASSIFY_COMMENT',
+    CLASSIFY_SLOP: 'CLASSIFY_SLOP',
     SAVE_CONFIG: 'SAVE_CONFIG',
     RECORD_COMMENT_EVENT: 'RECORD_COMMENT_EVENT',
     CLEAR_CACHE: 'CLEAR_CACHE',
@@ -60,10 +61,58 @@
     }
   ];
 
+  const SLOP_THRESHOLD = 0.70;
+  const SLOP_RULE = {
+    id: 'slop_content',
+    name: 'SLOP',
+    description: '识别信息增量低且具有模板化、重复或填充特征的帖子正文。',
+    instructions: `
+只判断正文内容，不判断作者身份、政治立场、观点对错或受欢迎程度。
+
+当正文同时满足以下特征时倾向判为 SLOP：
+1. 信息增量低：缺少具体事实、细节、经验、推理、明确观点或有价值的新信息；
+2. 存在明显模板化、重复、机械扩写、批量生成或空泛填充。
+
+不要仅因 AI 风格、长短、列表、营销、链接、情绪表达、语法问题或 engagement bait 判为 SLOP。
+
+包含具体事实、数字、技术细节、真实经历、明确观点、有效推理或独特观察时，应降低 SLOP 概率。
+`,
+    trueCriteria: '信息增量低，并存在明显模板化、重复或填充特征。',
+    falseCriteria: '包含具体事实、细节、经验、观点、推理或其他实质信息。',
+    threshold: SLOP_THRESHOLD,
+    enabled: true,
+    builtin: true
+  };
+
+  function normalizePostRecognition(input) {
+    const raw = input && typeof input === 'object' ? input : {};
+    return {
+      id: SLOP_RULE.id,
+      name: SLOP_RULE.name,
+      description: String(raw.description || SLOP_RULE.description).trim().slice(0, 500),
+      instructions: String(raw.instructions || SLOP_RULE.instructions).trim().slice(0, 4000),
+      trueCriteria: String(raw.trueCriteria || SLOP_RULE.trueCriteria).trim().slice(0, 1200),
+      falseCriteria: String(raw.falseCriteria || SLOP_RULE.falseCriteria).trim().slice(0, 1200),
+      enabled: raw.enabled !== false,
+      builtin: true
+    };
+  }
+
+  function normalizePostFiltering(input) {
+    const raw = input && typeof input === 'object' ? input : {};
+    return {
+      enabled: raw.enabled !== false,
+      threshold: normalizeThreshold(raw.threshold ?? SLOP_THRESHOLD),
+      showStamp: raw.showStamp !== false,
+      showOverlay: raw.showOverlay !== false,
+      weakenOnHover: raw.weakenOnHover !== false
+    };
+  }
+
   const DEFAULT_CONFIG = {
     enabled: true,
     onboardingCompleted: false,
-    rulesVersion: 3,
+    rulesVersion: 4,
     commentsOnly: true,
     failOpen: true,
     preload: false,
@@ -76,7 +125,11 @@
     debug: false,
     model: MODEL_VERSION,
     apiEndpoint: API_ENDPOINT,
-    rules: DEFAULT_RULES
+    rules: DEFAULT_RULES,
+    commentRecognition: { rules: DEFAULT_RULES.map((rule) => ({ ...rule })) },
+    commentFiltering: { rules: DEFAULT_RULES.map((rule) => ({ id: rule.id, name: rule.name, threshold: rule.threshold, enabled: rule.enabled, builtin: rule.builtin })) },
+    postRecognition: normalizePostRecognition(SLOP_RULE),
+    postFiltering: normalizePostFiltering()
   };
 
   const SELECTORS = {
@@ -122,23 +175,56 @@
 
   function normalizeConfig(input) {
     const raw = input && typeof input === 'object' ? input : {};
-    const configuredRules = Array.isArray(raw.rules) && raw.rules.length
-      ? raw.rules.map(normalizeRule)
+    const legacyRules = Array.isArray(raw.rules) && raw.rules.length ? raw.rules : [];
+    const recognitionRules = raw.commentRecognition && Array.isArray(raw.commentRecognition.rules) && raw.commentRecognition.rules.length
+      ? raw.commentRecognition.rules
+      : legacyRules;
+    const filteringRules = raw.commentFiltering && Array.isArray(raw.commentFiltering.rules) && raw.commentFiltering.rules.length
+      ? raw.commentFiltering.rules
+      : legacyRules;
+    const configuredRules = recognitionRules.length
+      ? recognitionRules.map(normalizeRule)
       : clone(DEFAULT_RULES);
+    const hasSeparateFiltering = Boolean(raw.commentFiltering && Array.isArray(raw.commentFiltering.rules) && raw.commentFiltering.rules.length);
+    const filteringById = new Map(filteringRules.map((rule) => [String(rule && rule.id || ''), rule]));
     const configuredIds = new Set(configuredRules.map((rule) => rule.id));
     const mergedRules = configuredRules.concat(DEFAULT_RULES.filter((rule) => !configuredIds.has(rule.id)).map(clone));
     const defaultsById = new Map(DEFAULT_RULES.map((rule) => [rule.id, rule]));
     const rules = mergedRules.map((rule) => {
       const builtin = defaultsById.get(rule.id);
-      if (!builtin || rule.builtin !== true) return rule;
-      const legacyThreshold = Number(raw.rulesVersion || 0) < 2 && ['sexual_content', 'sexual_solicitation'].includes(rule.id) && rule.threshold === 0.8;
-      return { ...clone(builtin), enabled: rule.enabled, threshold: legacyThreshold ? builtin.threshold : rule.threshold };
+      const configuredThreshold = rule.threshold === undefined ? builtin && builtin.threshold : rule.threshold;
+      const legacyThreshold = Number(raw.rulesVersion || 0) < 2 && ['sexual_content', 'sexual_solicitation'].includes(rule.id) && configuredThreshold === 0.8;
+      const base = !builtin || rule.builtin !== true
+        ? rule
+        : { ...clone(builtin), enabled: rule.enabled, threshold: legacyThreshold ? builtin.threshold : configuredThreshold };
+      const filter = hasSeparateFiltering ? filteringById.get(rule.id) : null;
+      return {
+        ...base,
+        enabled: filter && Object.prototype.hasOwnProperty.call(filter, 'enabled') ? filter.enabled !== false : base.enabled,
+        threshold: filter && filter.threshold !== undefined ? normalizeThreshold(filter.threshold) : base.threshold
+      };
     });
     const legacyDailyLimit = Number(raw.rulesVersion || 0) < 3 && Number(raw.dailyLimit) === 2000;
+    const postRecognition = normalizePostRecognition(raw.postRecognition || raw.slopRecognition || raw.slopRule);
+    const postFiltering = normalizePostFiltering(raw.postFiltering || raw.slopFilter);
+    const commentRecognition = {
+      rules: rules.map((rule) => ({
+        id: rule.id,
+        name: rule.name,
+        description: rule.description,
+        instructions: rule.instructions,
+        trueCriteria: rule.trueCriteria,
+        falseCriteria: rule.falseCriteria,
+        builtin: rule.builtin
+      }))
+    };
+    const commentFiltering = {
+      rules: rules.map((rule) => ({ id: rule.id, name: rule.name, threshold: rule.threshold, enabled: rule.enabled, builtin: rule.builtin }))
+    };
     return {
       enabled: raw.enabled !== false,
       onboardingCompleted: raw.onboardingCompleted === true,
-      rulesVersion: 3,
+      rulesVersion: 4,
       commentsOnly: raw.commentsOnly !== false,
       failOpen: raw.failOpen !== false,
       preload: raw.preload === true,
@@ -151,7 +237,11 @@
       debug: raw.debug === true,
       model: String(raw.model || MODEL_VERSION).slice(0, 80),
       apiEndpoint: String(raw.apiEndpoint || API_ENDPOINT),
-      rules
+      rules,
+      commentRecognition,
+      commentFiltering,
+      postRecognition,
+      postFiltering
     };
   }
 
@@ -161,6 +251,16 @@
 
   function activeRules(config) {
     return normalizeConfig(config).rules.filter((rule) => rule.enabled);
+  }
+
+  function slopRuleFromConfig(config) {
+    const normalized = normalizeConfig(config);
+    return {
+      ...normalized.postRecognition,
+      threshold: normalized.postFiltering.threshold,
+      enabled: normalized.postRecognition.enabled && normalized.postFiltering.enabled,
+      builtin: true
+    };
   }
 
   function normalizeText(value) {
@@ -336,7 +436,7 @@
       results[rule.id] = probability;
       const emojiClusterModelSupported = localSignals.spam.emojiClusterTemplate
         && ((results.sexual_content >= 0.45 && results.spam_behavior >= 0.15) || results.spam_behavior >= 0.45);
-      const spamModelSupported = localSignals.spam.bodyEmojiCount >= 1 || localSignals.spam.invisibleCount >= 3 || emojiClusterModelSupported;
+      const spamModelSupported = localSignals.spam.matched || emojiClusterModelSupported;
       if (rule.enabled !== false && probability >= normalizeThreshold(rule.threshold) && (rule.id !== 'spam_behavior' || spamModelSupported)) {
         matches.push({
           ruleId: rule.id,
@@ -381,6 +481,18 @@
     }
     matches.sort((a, b) => b.probability - a.probability);
     return { results, matches, localSignals, combinedRisk: localSignals.combinedRisk, shouldHide: matches.length > 0 };
+  }
+
+  function buildSlopDecision(response, rule) {
+    const answers = readAnswers(response);
+    const slopRule = rule || SLOP_RULE;
+    const probability = getProbability(answers[slopRule.id]);
+    const threshold = normalizeThreshold(slopRule.threshold);
+    return {
+      probability,
+      threshold,
+      shouldSlop: probability >= threshold
+    };
   }
 
   function stableValue(value) {
@@ -592,6 +704,10 @@
     MAX_COMMENT_LENGTH,
     MESSAGE,
     DEFAULT_RULES,
+    SLOP_RULE,
+    SLOP_THRESHOLD,
+    normalizePostRecognition,
+    normalizePostFiltering,
     DEFAULT_CONFIG,
     SELECTORS,
     clone,
@@ -601,6 +717,7 @@
     normalizeConfig,
     sanitizeConfig,
     activeRules,
+    slopRuleFromConfig,
     normalizeText,
     invisibleCharCount,
     emojiSignals,
@@ -614,6 +731,7 @@
     localObfuscatedSexualSignal,
     combinedRiskSignal,
     buildDecision,
+    buildSlopDecision,
     stableStringify,
     hashText,
     rulesFingerprint,

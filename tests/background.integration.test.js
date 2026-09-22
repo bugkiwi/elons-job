@@ -47,7 +47,14 @@ function createBackgroundHarness() {
         if (options.body.includes('network-fail')) throw new TypeError('network failed');
         const body = JSON.parse(options.body);
         const answers = {};
-        Object.keys(body.questions).forEach((id) => { answers[id] = { type: 'noul', noul: body.state.content === 'hide-me' ? (id === 'sexual_content' ? 0.93 : 0.12) : 0.08 }; });
+        Object.keys(body.questions).forEach((id) => {
+          const noul = body.state.content === 'hide-me'
+            ? (id === 'sexual_content' ? 0.93 : 0.12)
+            : body.state.content === 'slop-me'
+              ? (id === 'slop_content' ? 0.91 : 0.08)
+              : 0.08;
+          answers[id] = { type: 'noul', noul };
+        });
         return { ok: true, status: 200, text: async () => JSON.stringify({ model: 'jev-1.13.0', answers, usage: { input_tokens: 1, output_tokens: 1 } }) };
       } finally {
         activeRequests -= 1;
@@ -115,6 +122,41 @@ test('background pipeline keeps the API key out of the request body, caches dupl
   assert.equal(failed.ok, false);
   assert.equal(failed.error, 'API_UNAVAILABLE');
   assert.equal(failed.shouldHide, undefined);
+});
+
+test('SLOP classification uses a dedicated question and caches the stamp decision', async () => {
+  const harness = createBackgroundHarness();
+  const E = require('../src/shared/core.js');
+  await harness.dispatch({ type: E.MESSAGE.SAVE_API_KEY, payload: { apiKey: 'apikey_secret' } });
+  const first = await harness.dispatch({ type: E.MESSAGE.CLASSIFY_SLOP, payload: { tweetId: 'post-1', text: 'slop-me' } });
+  assert.equal(first.ok, true);
+  assert.equal(first.shouldSlop, true);
+  assert.equal(first.probability, 0.91);
+  assert.deepEqual(Object.keys(harness.requests[0].body.questions), ['slop_content']);
+  assert.equal(harness.requests[0].body.state.content, 'slop-me');
+  assert.equal(JSON.stringify(harness.requests[0].body).includes('apikey_secret'), false);
+
+  const cached = await harness.dispatch({ type: E.MESSAGE.CLASSIFY_SLOP, payload: { tweetId: 'post-2', text: 'slop-me' } });
+  assert.equal(cached.ok, true);
+  assert.equal(cached.shouldSlop, true);
+  assert.equal(cached.cache, 'hit');
+  assert.equal(harness.requests.length, 1);
+});
+
+test('SLOP settings customize recognition instructions and filtering threshold', async () => {
+  const harness = createBackgroundHarness();
+  const E = require('../src/shared/core.js');
+  await harness.dispatch({ type: E.MESSAGE.SAVE_API_KEY, payload: { apiKey: 'apikey_secret' } });
+  await harness.dispatch({ type: E.MESSAGE.SAVE_CONFIG, payload: {
+    postRecognition: { ...E.DEFAULT_CONFIG.postRecognition, instructions: 'custom post recognition instructions' },
+    postFiltering: { ...E.DEFAULT_CONFIG.postFiltering, threshold: 0.95 }
+  } });
+  const result = await harness.dispatch({ type: E.MESSAGE.CLASSIFY_SLOP, payload: { tweetId: 'post-1', text: 'slop-me' } });
+  assert.equal(result.ok, true);
+  assert.equal(result.probability, 0.91);
+  assert.equal(result.threshold, 0.95);
+  assert.equal(result.shouldSlop, false);
+  assert.equal(harness.requests[0].body.questions.slop_content.instructions, 'custom post recognition instructions');
 });
 
 test('background queue never exceeds the configured concurrency', async () => {

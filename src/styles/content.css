@@ -31,6 +31,62 @@
 .elon-work-placeholder.compact .elon-work-placeholder-copy strong { font-size: 11px; }
 .elon-work-placeholder.compact .elon-work-placeholder-details { color: #94a3b8; }
 
+.elon-work-slop-stamp-host {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  opacity: .88;
+  border-radius: inherit;
+  transition: opacity .22s ease;
+}
+.elon-work-slop-stamp-host.is-hovered {
+  opacity: .14;
+}
+.elon-work-slop-veil {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(15, 23, 42, .24);
+  backdrop-filter: saturate(.74) brightness(.88);
+}
+.elon-work-slop-stamp {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  display: grid;
+  width: 104px;
+  height: 38px;
+  place-items: center;
+  color: #ff5e5e;
+  background: rgba(54, 11, 18, .18);
+  border: 3px solid currentColor;
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 1px rgba(255, 94, 94, .25), 0 0 0 2px rgba(255, 94, 94, .08);
+  filter: drop-shadow(0 5px 8px rgba(127, 29, 29, .22));
+  font: 900 24px/.9 Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  letter-spacing: 2px;
+  text-shadow: 0 1px rgba(0, 0, 0, .16);
+  animation: elon-work-slop-stamp-in .58s cubic-bezier(.16, 1.25, .35, 1) both;
+}
+@keyframes elon-work-slop-stamp-in {
+  0% { opacity: 0; transform: scale(1.65) rotate(8deg); }
+  58% { opacity: 1; transform: scale(.92) rotate(-13deg); }
+  78% { transform: scale(1.06) rotate(-11deg); }
+  100% { opacity: 1; transform: scale(1) rotate(-12deg); }
+}
+.elon-work-slop-post {
+  position: relative !important;
+  isolation: isolate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .elon-work-slop-stamp-host,
+  .elon-work-slop-stamp { transition: none; animation: none; }
+}
+
 .elon-work-check-host {
   position: fixed;
   z-index: 2147483645;

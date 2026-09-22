@@ -239,6 +239,52 @@ importScripts('shared/core.js');
     return queued;
   }
 
+  async function classifySlop(payload) {
+    const config = await E.loadConfig(runtime, true);
+    const text = E.normalizeText(payload && payload.text);
+    const slopRule = E.slopRuleFromConfig(config);
+    if (!config.enabled || !slopRule.enabled) return { ok: true, shouldSlop: false, probability: 0, threshold: slopRule.threshold };
+    if (!text || text.length < 2) return { ok: true, shouldSlop: false, probability: 0, threshold: slopRule.threshold };
+    if (!config.typesafeApiKey) return { ok: false, error: 'API_KEY_MISSING' };
+
+    const rules = [slopRule];
+    const key = await E.cacheKey(`slop:${text}`, rules, config.model);
+    const force = payload && payload.force === true;
+    const cached = force ? null : await cacheGet(key);
+    if (!force && cached && Date.now() - cached.createdAt < config.cacheTtlHours * 60 * 60 * 1000) {
+      await writeStats({ cacheHitsDelta: 1 });
+      const decision = { ...cached.decision, threshold: slopRule.threshold, shouldSlop: Number(cached.decision && cached.decision.probability || 0) >= slopRule.threshold };
+      return { ok: true, ...decision, cache: 'hit' };
+    }
+
+    queue.setConcurrency(config.maxConcurrency);
+    const existing = queue.get(key);
+    if (existing) return existing;
+    const fingerprint = await E.rulesFingerprint(rules);
+    const questions = E.buildQuestions(rules);
+    const client = new TypeSafeClient(config.apiEndpoint, config.model);
+    const queued = queue.enqueue(key, async () => {
+      const reserved = await reserveRequest(config.dailyLimit);
+      if (!reserved) return { ok: false, error: 'DAILY_LIMIT_REACHED' };
+      try {
+        const result = await client.classify(config.typesafeApiKey, questions, text);
+        const decision = E.buildSlopDecision(result.response, slopRule);
+        await cacheSet(key, { createdAt: Date.now(), model: config.model, fingerprint, decision });
+        await writeStats({ latencyMs: result.latencyMs, lastError: '' });
+        E.debugLog(config, 'slop_classified', { tweetId: payload && payload.tweetId, contentHash: key, latencyMs: result.latencyMs, cache: 'miss' });
+        return { ok: true, ...decision, latencyMs: result.latencyMs, cache: 'miss' };
+      } catch (error) {
+        const code = E.cleanError(error);
+        await writeStats({ errorsDelta: 1, lastError: code });
+        E.debugLog(config, 'slop_classification_error', { tweetId: payload && payload.tweetId, contentHash: key, error: code });
+        return { ok: false, error: code };
+      } finally {
+        reservedRequests = Math.max(0, reservedRequests - 1);
+      }
+    });
+    return queued;
+  }
+
   async function state() {
     const config = await E.loadConfig(runtime, true);
     const stats = await E.getStats(runtime);
@@ -274,6 +320,7 @@ importScripts('shared/core.js');
     }
     if (type === E.MESSAGE.OPEN_ONBOARDING) return openOnboarding();
     if (type === E.MESSAGE.CLASSIFY_COMMENT) return classify(payload || {});
+    if (type === E.MESSAGE.CLASSIFY_SLOP) return classifySlop(payload || {});
     if (type === E.MESSAGE.SAVE_CONFIG) {
       const saved = await E.saveConfig(runtime, payload || {});
       return { ok: true, config: E.sanitizeConfig(saved) };

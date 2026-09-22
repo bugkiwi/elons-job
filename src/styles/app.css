@@ -154,6 +154,9 @@ body.ew-popup { width: 380px; min-width: 380px; }
 .ew-side-stat strong { display: block; margin: 5px 0; font: 600 20px var(--ew-mono); }
 .ew-settings-content { display: grid; gap: 14px; }
 .ew-settings-section { scroll-margin-top: 82px; }
+.ew-subsection { padding: 14px; background: rgba(10, 14, 23, .46); border: 1px solid var(--ew-line); border-radius: 8px; }
+.ew-subsection .ew-card-header { margin-bottom: 12px; }
+.ew-subsection .ew-card-title { margin: 0; font-size: 14px; }
 .ew-section-status { white-space: nowrap; }
 .ew-api-line { display: flex; gap: 8px; align-items: end; }
 .ew-api-line .ew-field { flex: 1; }
@@ -165,6 +168,9 @@ body.ew-popup { width: 380px; min-width: 380px; }
 .ew-rule-card-title { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; font-weight: 600; }
 .ew-rule-card-desc { color: var(--ew-muted); font-size: 11px; }
 .ew-rule-actions { display: flex; align-items: center; gap: 7px; }
+.ew-filter-rule-actions { min-width: min(270px, 42%); }
+.ew-filter-threshold { display: grid; grid-template-columns: auto 42px; align-items: center; gap: 4px 8px; color: var(--ew-muted); font: 500 10px var(--ew-mono); white-space: nowrap; }
+.ew-filter-threshold .ew-range { grid-column: 1 / -1; min-width: 130px; }
 .ew-range { width: 100%; direction: rtl; accent-color: var(--ew-blue); }
 .ew-range-labels { display: flex; justify-content: space-between; color: var(--ew-dim); font: 10px var(--ew-mono); }
 .ew-modal-backdrop { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 16px; background: rgba(4, 7, 12, .76); }
@@ -225,6 +231,8 @@ body.ew-popup { width: 380px; min-width: 380px; }
   .ew-grid-2, .ew-grid-3 { grid-template-columns: 1fr; }
   .ew-api-line { display: grid; }
   .ew-api-actions { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .ew-filter-rule-actions { min-width: 130px; }
+  .ew-filter-threshold .ew-range { min-width: 100px; }
   .ew-footer { display: block; }
   .ew-footer span + span { display: block; margin-top: 5px; }
 }

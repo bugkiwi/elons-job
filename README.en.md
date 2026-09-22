@@ -1,6 +1,6 @@
 # Elon's Job
 
-A local-first Chrome Manifest V3 extension that only processes replies on X (`x.com/{user}/status/{id}`) detail pages. It uses the user's own TypeSafe Jev API key to display recoverable hidden placeholders for high-confidence pornographic, sexually suggestive, and promotional comments.
+A local-first Chrome Manifest V3 extension for X (`x.com`) that uses the user's own TypeSafe Jev API key to display recoverable hidden placeholders for high-confidence pornographic, sexually suggestive, and promotional comments, while adding an interactive stamp to suspected SLOP posts.
 
 [Privacy Policy](privacy.html)
 
@@ -33,7 +33,9 @@ After the build completes, open `chrome://extensions`, enable Developer mode, cl
 
 Matching comments are replaced with recoverable hidden placeholders. The settings center defaults to a daily TypeSafe request limit of 100,000 and provides caching, concurrency, and cost protections.
 
-Filtering rules are customizable: you can edit rule names, hide conditions, exclusion conditions, and sensitivity to fit different community moderation needs.
+The settings center separates two layers: recognition specifications for post-body SLOP and comment classification, and filtering specifications for the post stamp/overlay, SLOP threshold, comment-rule enablement, hide thresholds, and fail-open behavior. Custom comment recognition rules can be added and edited independently.
+
+Post bodies also receive a separate SLOP check: when low-information, templated, or strongly generated content is detected, the extension only overlays an animated `SLOP` stamp without changing the original text. Moving the pointer over the post weakens the stamp. SLOP detection is separate from comment hiding and uses the same TypeSafe API key.
 
 <p align="center">
   <img src="docs/screenshots/custom-rule-editor.png" alt="Custom comment filtering rule editor" width="720">
@@ -42,9 +44,9 @@ Filtering rules are customizable: you can edit rule names, hide conditions, excl
 ## Security Boundaries
 
 - The API key is read only by the service worker and stored in `chrome.storage.local`; the popup and settings page can only save or test it through the messaging protocol.
-- The content script sends only `{ tweetId, text }` to the service worker, where `text` combines the username and comment body. It does not read cookies, history, X login information, or the root tweet's content.
+- The content script sends only `{ tweetId, text }` to the service worker, where `text` is the inspected post or comment body (comment checks also include the username). It does not read cookies, history, or X login information.
 - TypeSafe requests use `https://api.typesafe.ai/v1/systemone`. Unexpected API responses, timeouts, 401, 429, and 5xx errors fail open.
-- The cache key uses hashes of the username/comment content, rule fingerprint, and model; raw comment text is not stored.
+- The cache key uses hashes of the post/comment content, rule fingerprint, and model; raw post or comment text is not stored.
 - `manifest.json` does not request `tabs`, `history`, `cookies`, `webRequest`, or `<all_urls>`.
 
 ## Test Coverage

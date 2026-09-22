@@ -16,7 +16,7 @@ test('default configuration exposes three enabled builtin rules', () => {
 
 test('migrates the legacy default daily limit to 100000', () => {
   const config = E.normalizeConfig({ rulesVersion: 2, dailyLimit: 2000 });
-  assert.equal(config.rulesVersion, 3);
+  assert.equal(config.rulesVersion, 4);
   assert.equal(config.dailyLimit, 100000);
   assert.equal(E.normalizeConfig({ rulesVersion: 3, dailyLimit: 2000 }).dailyLimit, 2000);
 });
@@ -59,6 +59,32 @@ test('buildQuestions compiles enabled rules into Jev noul questions', () => {
   assert.equal(questions.spam_behavior.type, 'noul');
   assert.match(questions.spam_behavior.instructions, /模板刷屏/);
   assert.equal(questions.sexual_content.criteria.false.length > 0, true);
+});
+
+test('SLOP decisions use the configured threshold', () => {
+  const questions = E.buildQuestions([E.SLOP_RULE]);
+  assert.deepEqual(Object.keys(questions), ['slop_content']);
+  assert.match(questions.slop_content.instructions, /信息增量低/);
+  assert.equal(E.SLOP_THRESHOLD, 0.70);
+  assert.equal(E.buildSlopDecision({ answers: { slop_content: { noul: 0.70 } } }).shouldSlop, true);
+  assert.equal(E.buildSlopDecision({ answers: { slop_content: { noul: 0.69 } } }).shouldSlop, false);
+});
+
+test('configuration separates post/comment recognition from filtering policies', () => {
+  const customRule = { id: 'custom_topic', name: 'Topic', description: 'custom recognition', instructions: 'custom instructions', trueCriteria: 'custom true', falseCriteria: 'custom false', enabled: true, builtin: false };
+  const config = E.normalizeConfig({
+    postRecognition: { instructions: 'custom post instructions' },
+    postFiltering: { threshold: 0.74, showOverlay: false },
+    commentRecognition: { rules: [customRule] },
+    commentFiltering: { rules: [{ id: 'custom_topic', threshold: 0.88, enabled: false }] }
+  });
+  assert.equal(config.postRecognition.instructions, 'custom post instructions');
+  assert.equal(config.postFiltering.threshold, 0.74);
+  assert.equal(config.postFiltering.showOverlay, false);
+  assert.equal(config.commentRecognition.rules.find((rule) => rule.id === 'custom_topic').description, 'custom recognition');
+  assert.equal(config.commentFiltering.rules.find((rule) => rule.id === 'custom_topic').threshold, 0.88);
+  assert.equal(config.rules.find((rule) => rule.id === 'custom_topic').enabled, false);
+  assert.equal(config.rules.find((rule) => rule.id === 'custom_topic').threshold, 0.88);
 });
 
 test('config upgrades persisted builtin rules while preserving user threshold and enabled state', () => {
@@ -108,6 +134,15 @@ test('emoji variation selectors do not split equivalent templates', () => {
 test('spam score alone does not hide a plain single comment', () => {
   const spamRule = E.DEFAULT_RULES.find((rule) => rule.id === 'spam_behavior');
   const result = E.buildDecision({ answers: { spam_behavior: { noul: 0.99 } } }, [spamRule], { content: '我发的不是普通内容，想看完整版就进群。' });
+  assert.equal(result.shouldHide, false);
+});
+
+test('a natural single emoji does not support a spam hide decision', () => {
+  const spamRule = E.DEFAULT_RULES.find((rule) => rule.id === 'spam_behavior');
+  const content = E.composeComment({ text: 'It does not work, I only write about 10% of my posts with ai and this tool ranked my profile 80%. Safe to say that the feature itself is a slop 😒' });
+  const result = E.buildDecision({ answers: { spam_behavior: { noul: 0.78 } } }, [spamRule], { content });
+  assert.equal(result.localSignals.spam.bodyEmojiCount, 1);
+  assert.equal(result.localSignals.spam.matched, false);
   assert.equal(result.shouldHide, false);
 });
 

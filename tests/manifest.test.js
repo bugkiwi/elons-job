@@ -83,6 +83,20 @@ test('popup puts first-time API setup before telemetry and uses the TypeSafe key
   assert.match(fs.readFileSync(path.join(root, 'src/settings.js'), 'utf8'), /showCheckControls/);
 });
 
+test('settings separates post/comment recognition specs from filtering policies', () => {
+  const settings = fs.readFileSync(path.join(root, 'src/settings.html'), 'utf8');
+  const script = fs.readFileSync(path.join(root, 'src/settings.js'), 'utf8');
+  assert.match(settings, /id="section-recognition"/);
+  assert.match(settings, /id="section-filtering"/);
+  assert.match(settings, /id="postRecognitionInstructions"/);
+  assert.match(settings, /id="postFilteringEnabledToggle"/);
+  assert.match(settings, /id="commentFilterList"/);
+  assert.match(script, /commentRecognition/);
+  assert.match(script, /commentFiltering/);
+  assert.match(script, /postRecognition/);
+  assert.match(script, /postFiltering/);
+});
+
 test('popup status metrics stay compact and horizontal on the narrow popup viewport', () => {
   const popup = fs.readFileSync(path.join(root, 'src/popup.html'), 'utf8');
   const css = fs.readFileSync(path.join(root, 'src/styles/app.css'), 'utf8');

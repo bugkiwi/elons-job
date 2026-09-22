@@ -6,6 +6,10 @@
     config: null,
     route: '',
     processed: new Map(),
+    slopProcessed: new Map(),
+    slopStatuses: new Map(),
+    slopStamps: new Set(),
+    slopArticleEntries: new WeakMap(),
     commentStatuses: new Map(),
     revealed: new Set(),
     controls: new Map(),
@@ -20,6 +24,7 @@
     scanTimer: null,
     positionFrame: null,
     hideTimers: new WeakMap(),
+    boundSlopArticles: new WeakSet(),
     monitor: null,
     started: false,
     hasApiKey: false
@@ -94,12 +99,37 @@
     else state.commentStatuses.delete(commentKey);
   }
 
+  function transitionSlopStatus(identity, next) {
+    if (next) state.slopStatuses.set(identity, next);
+    else state.slopStatuses.delete(identity);
+  }
+
   function removePlaceholder(article) {
     const placeholder = article.previousElementSibling;
     if (placeholder && placeholder.matches('[data-elon-work-placeholder]')) placeholder.remove();
     article.classList.remove('elon-work-hidden', 'elon-work-pending');
     article.style.removeProperty('display');
     syncControlsForArticle(article);
+  }
+
+  function removeSlopStamp(article) {
+    if (!article) return;
+    const entry = state.slopArticleEntries.get(article);
+    if (entry) {
+      entry.host.remove();
+      state.slopStamps.delete(entry);
+      state.slopArticleEntries.delete(article);
+    }
+    article.classList.remove('elon-work-slop-post');
+  }
+
+  function clearSlopStamps() {
+    for (const entry of state.slopStamps) {
+      entry.host.remove();
+      entry.article.classList.remove('elon-work-slop-post');
+      state.slopArticleEntries.delete(entry.article);
+    }
+    state.slopStamps.clear();
   }
 
   function clearAppliedStates() {
@@ -109,6 +139,64 @@
       setControlsSuppressed(article, false);
     });
     document.querySelectorAll('[data-elon-work-placeholder]').forEach((placeholder) => placeholder.remove());
+    clearSlopStamps();
+  }
+
+  function bindSlopHover(article) {
+    if (!article || state.boundSlopArticles.has(article)) return;
+    state.boundSlopArticles.add(article);
+    article.addEventListener('mouseenter', () => {
+      const entry = state.slopArticleEntries.get(article);
+      if (entry && (!state.config || !state.config.postFiltering || state.config.postFiltering.weakenOnHover !== false)) entry.host.classList.add('is-hovered');
+    });
+    article.addEventListener('mouseleave', () => {
+      const entry = state.slopArticleEntries.get(article);
+      if (entry) entry.host.classList.remove('is-hovered');
+    });
+  }
+
+  function ensureSlopStamp(article, post, identity, probability) {
+    const filtering = state.config && state.config.postFiltering || {};
+    const showStamp = filtering.showStamp !== false;
+    const showOverlay = filtering.showOverlay !== false;
+    if (!showStamp && !showOverlay) {
+      removeSlopStamp(article);
+      return;
+    }
+    const current = state.slopArticleEntries.get(article);
+    if (current && current.identity === identity) {
+      current.probability = probability;
+      if (current.host.parentElement !== article) article.appendChild(current.host);
+      if (current.stamp) current.stamp.hidden = !showStamp;
+      if (current.veil) current.veil.hidden = !showOverlay;
+      article.classList.add('elon-work-slop-post');
+      return;
+    }
+    removeSlopStamp(article);
+    const host = document.createElement('span');
+    host.dataset.elonWorkSlopStamp = 'true';
+    host.className = 'elon-work-slop-stamp-host';
+    host.setAttribute('role', 'img');
+    host.setAttribute('aria-label', 'SLOP 内容标记');
+    host.title = `SLOP · ${Math.round(Number(probability || 0) * 100)}%`;
+
+    const stamp = document.createElement('span');
+    stamp.className = 'elon-work-slop-stamp';
+    stamp.textContent = 'SLOP';
+
+    const veil = document.createElement('span');
+    veil.className = 'elon-work-slop-veil';
+    veil.hidden = !showOverlay;
+    stamp.hidden = !showStamp;
+    host.append(veil, stamp);
+    article.appendChild(host);
+
+    const entry = { article, host, stamp, veil, identity, post, probability };
+    state.slopStamps.add(entry);
+    state.slopArticleEntries.set(article, entry);
+    article.classList.add('elon-work-slop-post');
+    bindSlopHover(article);
+    if (article.matches && article.matches(':hover')) host.classList.add('is-hovered');
   }
 
   function createPlaceholder(article, comment, matches) {
@@ -186,6 +274,11 @@
     if (!control || !control.article || !control.article.isConnected) return null;
     const hidden = control.article.classList.contains('elon-work-hidden') || control.article.style.display === 'none';
     if (hidden) return null;
+    if (control.kind === 'slop') {
+      return control.article.querySelector('time')
+        || control.article.querySelector(E.SELECTORS.tweetLink)
+        || control.article;
+    }
     return control.article.querySelector(E.SELECTORS.userName) || control.article;
   }
 
@@ -287,7 +380,19 @@
 
   function renderResultRows(control, result) {
     control.rows.replaceChildren();
-    if (!result || !result.ok || !result.results) return;
+    if (!result || !result.ok) return;
+    if (control.kind === 'slop') {
+      const row = document.createElement('div');
+      row.className = 'elon-work-check-row';
+      const name = document.createElement('span');
+      name.textContent = 'SLOP';
+      const score = document.createElement('strong');
+      score.textContent = `${Math.round(Number(result.probability || 0) * 100)}%`;
+      row.append(name, score);
+      control.rows.appendChild(row);
+      return;
+    }
+    if (!result.results) return;
     for (const [ruleId, probability] of Object.entries(result.results)) {
       const row = document.createElement('div');
       row.className = 'elon-work-check-row';
@@ -301,11 +406,13 @@
   }
 
   function renderCheckControl(control) {
-    const result = state.processed.get(control.identity);
+    const slop = control.kind === 'slop';
+    const result = (slop ? state.slopProcessed : state.processed).get(control.identity);
+    const slopPaused = slop && (!state.config || state.config.postRecognition && state.config.postRecognition.enabled === false || state.config.postFiltering && state.config.postFiltering.enabled === false);
     const pending = Boolean(result && result.pending);
     control.button.textContent = pending ? '检查中' : '检查';
     control.button.disabled = pending;
-    control.popoverTitle.textContent = '评论检查';
+    control.popoverTitle.textContent = slop ? '帖子 SLOP 检查' : '评论检查';
     control.recheck.hidden = true;
     control.rows.replaceChildren();
 
@@ -314,9 +421,12 @@
       control.detail.textContent = '打开插件后可恢复检查。';
     } else if (!state.hasApiKey) {
       control.status.textContent = '等待 API Key';
-      control.detail.textContent = '先连接 TypeSafe，评论会保持显示。';
+      control.detail.textContent = slop ? '先连接 TypeSafe，帖子会保持原样。' : '先连接 TypeSafe，评论会保持显示。';
       control.recheck.hidden = false;
       control.recheck.textContent = '打开设置';
+    } else if (slopPaused) {
+      control.status.textContent = '帖子过滤已暂停';
+      control.detail.textContent = '可在设置中心的“帖子过滤规范”中重新启用。';
     } else if (!result) {
       control.status.textContent = '尚未检查';
       control.detail.textContent = '点击按钮开始检查。';
@@ -326,29 +436,35 @@
       control.status.textContent = '正在检查…';
       control.detail.textContent = 'TypeSafe 正在返回结果。';
     } else if (result.ok) {
-      control.status.textContent = result.shouldHide ? '命中隐藏规则' : '未命中隐藏阈值';
-      control.detail.textContent = result.shouldHide ? '这条评论已按当前规则处理。' : '这条评论当前保持显示。';
+      if (slop) {
+        control.status.textContent = result.shouldSlop ? '命中 SLOP' : '未命中 SLOP';
+        control.detail.textContent = result.shouldSlop ? '已在帖子正文上叠加 SLOP 印章。' : '这条帖子保持原样。';
+      } else {
+        control.status.textContent = result.shouldHide ? '命中隐藏规则' : '未命中隐藏阈值';
+        control.detail.textContent = result.shouldHide ? '这条评论已按当前规则处理。' : '这条评论当前保持显示。';
+      }
       control.recheck.hidden = false;
       control.recheck.textContent = '重新检查';
       renderResultRows(control, result);
     } else {
-      control.status.textContent = '检查失败，保持显示';
+      control.status.textContent = slop ? '检查失败，保持原样' : '检查失败，保持显示';
       control.detail.textContent = `错误：${result.error || 'API_UNAVAILABLE'}（Fail Open）`;
       control.recheck.hidden = false;
       control.recheck.textContent = '重新检查';
     }
   }
 
-  function createCheckControl(article, comment, identity, hash) {
+  function createCheckControl(article, comment, identity, hash, kind) {
+    const slop = kind === 'slop';
     const host = document.createElement('div');
     host.className = 'elon-work-check-host';
-    host.setAttribute('aria-label', '评论检查');
+    host.setAttribute('aria-label', slop ? '帖子检查' : '评论检查');
 
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'elon-work-check-button';
     button.textContent = '检查';
-    button.title = '检查这条评论';
+    button.title = slop ? '检查这条帖子' : '检查这条评论';
     host.appendChild(button);
 
     const popover = document.createElement('div');
@@ -368,7 +484,7 @@
     popover.append(popoverTitle, status, detail, rows, recheck);
     host.appendChild(popover);
 
-    const control = { host, button, popover, popoverTitle, status, detail, rows, recheck, article, comment, identity, hash };
+    const control = { host, button, popover, popoverTitle, status, detail, rows, recheck, article, comment, identity, hash, kind: kind || 'comment' };
     host.addEventListener('mouseenter', () => showControl(control));
     host.addEventListener('mouseleave', () => hideControl(control));
     host.addEventListener('focusin', () => showControl(control));
@@ -380,8 +496,9 @@
         send(E.MESSAGE.OPEN_SETTINGS);
         return;
       }
-      const result = state.processed.get(control.identity);
-      classifyArticle(control.article, control.comment, { force: Boolean(result && !result.pending), hash: control.hash, identity: control.identity });
+      const result = (control.kind === 'slop' ? state.slopProcessed : state.processed).get(control.identity);
+      if (control.kind === 'slop') classifySlopArticle(control.article, control.comment, control.identity, { force: Boolean(result && !result.pending) });
+      else classifyArticle(control.article, control.comment, { force: Boolean(result && !result.pending), hash: control.hash, identity: control.identity });
     });
     recheck.addEventListener('click', (event) => {
       event.preventDefault();
@@ -390,21 +507,29 @@
         send(E.MESSAGE.OPEN_SETTINGS);
         return;
       }
-      classifyArticle(control.article, control.comment, { force: true, hash: control.hash, identity: control.identity });
+      if (control.kind === 'slop') classifySlopArticle(control.article, control.comment, control.identity, { force: true });
+      else classifyArticle(control.article, control.comment, { force: true, hash: control.hash, identity: control.identity });
     });
     document.body.appendChild(host);
     return control;
   }
 
-  function ensureCheckControl(article, comment, identity, hash) {
+  function ensureCheckControl(article, comment, identity, hash, kind) {
+    for (const [existingIdentity, existing] of state.controls.entries()) {
+      if (existing.article === article && existingIdentity !== identity) {
+        existing.host.remove();
+        state.controls.delete(existingIdentity);
+      }
+    }
     let control = state.controls.get(identity);
     if (!control) {
-      control = createCheckControl(article, comment, identity, hash);
+      control = createCheckControl(article, comment, identity, hash, kind);
       state.controls.set(identity, control);
     } else {
       control.article = article;
       control.comment = comment;
       control.hash = hash;
+      control.kind = kind || control.kind || 'comment';
     }
     setControlsSuppressed(article, article.classList.contains('elon-work-hidden') || article.style.display === 'none');
     bindAnchor(getHoverAnchor(control), control);
@@ -421,16 +546,23 @@
   function renderMonitor() {
     const monitor = state.monitor;
     if (!monitor) return;
-    const detail = !activeDetail() ? '仅在 Tweet Detail 检查回复' : !state.config || !state.config.enabled ? '保护已暂停' : !state.hasApiKey ? '等待配置 TypeSafe API Key' : state.pagePending ? '正在检查当前页面' : state.pageErrors ? '部分检查失败，评论保持显示' : '当前页面检查完成';
+    const slopResults = Array.from(state.slopStatuses.values());
+    const slopChecked = slopResults.filter((result) => result && !result.pending && result.ok).length;
+    const slopPending = slopResults.filter((result) => result && result.pending).length;
+    const slopErrors = slopResults.filter((result) => result && !result.pending && !result.ok).length;
+    const totalChecked = state.pageChecked + slopChecked;
+    const totalPending = state.pagePending + slopPending;
+    const totalErrors = state.pageErrors + slopErrors;
+    const detail = !state.config || !state.config.enabled ? '保护已暂停' : !state.hasApiKey ? '等待配置 TypeSafe API Key' : totalPending ? '正在检查当前页面' : totalErrors ? '部分检查失败，内容保持显示' : activeDetail() ? '回复检查与 SLOP 标记完成' : 'SLOP 标记完成';
     monitor.status.textContent = detail;
-    monitor.summary.textContent = `已检查 ${state.pageChecked} · 隐藏 ${state.pageHidden}`;
-    monitor.checked.textContent = String(state.pageChecked);
+    monitor.summary.textContent = `已检查 ${totalChecked} · 隐藏 ${state.pageHidden} · SLOP ${slopChecked} · 盖章 ${state.slopStamps.size}`;
+    monitor.checked.textContent = String(totalChecked);
     monitor.hidden.textContent = String(state.pageHidden);
-    monitor.pending.textContent = String(state.pagePending);
-    monitor.safe.textContent = String(state.pageSafe);
+    monitor.pending.textContent = String(totalPending);
+    monitor.safe.textContent = String(state.pageSafe + slopResults.filter((result) => result && result.ok && !result.shouldSlop).length);
     monitor.latency.textContent = state.pageLastLatency ? `${state.pageLastLatency}ms` : '—';
     monitor.api.textContent = state.hasApiKey ? 'TypeSafe 已连接' : '未连接 TypeSafe';
-    monitor.dot.className = `elon-work-monitor-dot ${state.pagePending ? 'is-busy' : state.hasApiKey && state.config && state.config.enabled ? 'is-ready' : 'is-warn'}`;
+    monitor.dot.className = `elon-work-monitor-dot ${totalPending ? 'is-busy' : state.hasApiKey && state.config && state.config.enabled ? 'is-ready' : 'is-warn'}`;
   }
 
   function createMonitor() {
@@ -538,8 +670,53 @@
     else applySafe(article);
   }
 
-  async function scan() {
-    if (!state.started || !activeDetail()) return;
+  async function classifySlopArticle(article, post, identity, options) {
+    const opts = options || {};
+    const control = ensureCheckControl(article, post, identity, '', 'slop');
+    const slopPaused = !state.config || state.config.postRecognition && state.config.postRecognition.enabled === false || state.config.postFiltering && state.config.postFiltering.enabled === false;
+    if (slopPaused) {
+      removeSlopStamp(article);
+      renderCheckControl(control);
+      renderMonitor();
+      return;
+    }
+    const previous = state.slopProcessed.get(identity);
+    if (!opts.force && previous && previous.pending) return;
+    if (!opts.force && previous && previous.ok) {
+      if (previous.shouldSlop) ensureSlopStamp(article, post, identity, previous.probability);
+      else removeSlopStamp(article);
+      renderCheckControl(control);
+      renderMonitor();
+      return;
+    }
+    if (opts.force && previous && previous.pending) return;
+
+    const pending = { pending: true };
+    state.slopProcessed.set(identity, pending);
+    transitionSlopStatus(identity, pending);
+    renderCheckControl(control);
+    renderMonitor();
+    const response = await send(E.MESSAGE.CLASSIFY_SLOP, {
+      tweetId: post.tweetId,
+      text: post.text,
+      force: Boolean(opts.force)
+    });
+    const result = response || { ok: false, error: 'NO_RESPONSE' };
+    state.slopProcessed.set(identity, result);
+    transitionSlopStatus(identity, result);
+    if (Number.isFinite(result.latencyMs)) state.pageLastLatency = result.latencyMs;
+    renderCheckControl(control);
+    renderMonitor();
+    if (!article.isConnected) return;
+    const current = E.extractComment(article);
+    if (!current || articleKey(current) !== articleKey(post)) return;
+    if (result.ok && result.shouldSlop) ensureSlopStamp(article, post, identity, result.probability);
+    else removeSlopStamp(article);
+    renderMonitor();
+  }
+
+  async function scanReplies() {
+    if (!activeDetail()) return;
     const rootId = E.rootTweetId(location.href);
     const articles = Array.from(document.querySelectorAll(E.SELECTORS.tweet));
     const candidates = [];
@@ -561,6 +738,35 @@
       if (!state.config || !state.config.enabled || !state.hasApiKey || article.dataset.elonWorkRevealed === 'true') continue;
       classifyArticle(article, enrichedComment, { hash, identity });
     }
+  }
+
+  async function scanSlopPosts() {
+    const articles = Array.from(document.querySelectorAll(E.SELECTORS.tweet));
+    const seenArticles = new Set();
+    for (const article of articles) {
+      if (activeDetail() && E.isReplyArticle(article, location.href)) continue;
+      const post = E.extractComment(article);
+      if (!post) continue;
+      seenArticles.add(article);
+      const identity = `${articleKey(post)}:slop`;
+      const existing = state.slopArticleEntries.get(article);
+      if (existing && existing.identity !== identity) removeSlopStamp(article);
+      ensureCheckControl(article, post, identity, '', 'slop');
+      if (!state.config || !state.config.enabled || !state.hasApiKey || !state.config.postRecognition || state.config.postRecognition.enabled === false || !state.config.postFiltering || state.config.postFiltering.enabled === false) {
+        removeSlopStamp(article);
+        continue;
+      }
+      classifySlopArticle(article, post, identity);
+    }
+    for (const entry of state.slopStamps) {
+      if (!entry.article.isConnected || !seenArticles.has(entry.article)) removeSlopStamp(entry.article);
+    }
+  }
+
+  async function scan() {
+    if (!state.started) return;
+    await scanReplies();
+    await scanSlopPosts();
     renderMonitor();
   }
 
@@ -574,6 +780,8 @@
     if (next === state.route) return;
     state.route = next;
     state.processed.clear();
+    state.slopProcessed.clear();
+    state.slopStatuses.clear();
     state.revealed.clear();
     state.pageChecked = 0;
     state.pageHidden = 0;
@@ -597,15 +805,15 @@
     state.route = location.href;
     state.started = true;
     renderMonitor();
-    if (activeDetail()) scheduleScan();
+    scheduleScan();
 
-    const isExtensionNode = (node) => node && node.nodeType === 1 && (node.matches('.elon-work-check-host, .elon-work-monitor, [data-elon-work-placeholder]') || Boolean(node.closest && node.closest('.elon-work-check-host, .elon-work-monitor, [data-elon-work-placeholder]')));
+    const isExtensionNode = (node) => node && node.nodeType === 1 && (node.matches('.elon-work-check-host, .elon-work-monitor, [data-elon-work-placeholder], [data-elon-work-slop-stamp]') || Boolean(node.closest && node.closest('.elon-work-check-host, .elon-work-monitor, [data-elon-work-placeholder], [data-elon-work-slop-stamp]')));
     const observer = new MutationObserver((mutations) => {
       const relevant = mutations.some((mutation) => {
         if (isExtensionNode(mutation.target)) return false;
         return Array.from(mutation.addedNodes).concat(Array.from(mutation.removedNodes)).some((node) => !isExtensionNode(node));
       });
-      if (relevant && activeDetail()) scheduleScan();
+      if (relevant) scheduleScan();
     });
     observer.observe(document.documentElement, { childList: true, subtree: true });
     window.addEventListener('scroll', requestPosition, true);
@@ -621,6 +829,9 @@
       state.config = next.config;
       state.hasApiKey = Boolean(next.hasApiKey);
       state.processed.clear();
+      state.slopProcessed.clear();
+      state.slopStatuses.clear();
+      clearSlopStamps();
       if (!state.config.enabled || !state.hasApiKey) clearAppliedStates();
       for (const control of state.controls.values()) {
         const hidden = control.article.classList.contains('elon-work-hidden') || control.article.style.display === 'none';
