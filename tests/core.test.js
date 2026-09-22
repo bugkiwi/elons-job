@@ -61,13 +61,59 @@ test('buildQuestions compiles enabled rules into Jev noul questions', () => {
   assert.equal(questions.sexual_content.criteria.false.length > 0, true);
 });
 
-test('SLOP decisions use the configured threshold', () => {
-  const questions = E.buildQuestions([E.SLOP_RULE]);
-  assert.deepEqual(Object.keys(questions), ['slop_content']);
-  assert.match(questions.slop_content.instructions, /信息增量低/);
+test('SLOP uses decomposed Jev signals and the configured threshold', () => {
+  const questions = E.buildSlopQuestions(E.SLOP_RULE);
+  assert.deepEqual(Object.keys(questions), [
+    'slop_has_substance',
+    'slop_generic_substitutable',
+    'slop_repetitive_filler',
+    'slop_policy_alignment'
+  ]);
+  assert.match(questions.slop_has_substance.instructions, /实质信息/);
+  assert.match(questions.slop_generic_substitutable.instructions, /可替换/);
+  assert.match(questions.slop_repetitive_filler.instructions, /重复同一意思/);
+  assert.match(questions.slop_policy_alignment.instructions, /信息增量低/);
   assert.equal(E.SLOP_THRESHOLD, 0.70);
-  assert.equal(E.buildSlopDecision({ answers: { slop_content: { noul: 0.70 } } }).shouldSlop, true);
-  assert.equal(E.buildSlopDecision({ answers: { slop_content: { noul: 0.69 } } }).shouldSlop, false);
+
+  const slop = E.buildSlopDecision({ answers: {
+    slop_has_substance: { noul: 0.05 },
+    slop_generic_substitutable: { noul: 0.95 },
+    slop_repetitive_filler: { noul: 0.90 },
+    slop_policy_alignment: { noul: 0.95 }
+  } });
+  assert.ok(slop.probability > 0.9);
+  assert.equal(slop.shouldSlop, true);
+
+  const substantive = E.buildSlopDecision({ answers: {
+    slop_has_substance: { noul: 0.95 },
+    slop_generic_substitutable: { noul: 0.10 },
+    slop_repetitive_filler: { noul: 0.05 },
+    slop_policy_alignment: { noul: 0.10 }
+  } });
+  assert.ok(substantive.probability < 0.15);
+  assert.equal(substantive.shouldSlop, false);
+});
+
+test('SLOP does not stamp a short natural reaction solely for being low-information', () => {
+  const reaction = E.buildSlopDecision({ answers: {
+    slop_has_substance: { noul: 0.10 },
+    slop_generic_substitutable: { noul: 0.45 },
+    slop_repetitive_filler: { noul: 0.05 },
+    slop_policy_alignment: { noul: 0.35 }
+  } });
+  assert.ok(reaction.probability < E.SLOP_THRESHOLD);
+  assert.equal(reaction.shouldSlop, false);
+});
+
+test('SLOP can stamp verbose generic filler even without explicit AI-style detection', () => {
+  const filler = E.buildSlopDecision({ answers: {
+    slop_has_substance: { noul: 0.08 },
+    slop_generic_substitutable: { noul: 0.94 },
+    slop_repetitive_filler: { noul: 0.88 },
+    slop_policy_alignment: { noul: 0.92 }
+  } });
+  assert.ok(filler.probability >= E.SLOP_THRESHOLD);
+  assert.equal(filler.shouldSlop, true);
 });
 
 test('configuration separates post/comment recognition from filtering policies', () => {
