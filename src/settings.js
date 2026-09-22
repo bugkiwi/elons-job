@@ -86,7 +86,7 @@
     $('requestPreview').textContent = JSON.stringify({
       model: config.model,
       comment: { state: { content: '<comment text>' }, questions: E.buildQuestions(E.activeRules(config)) },
-      post: { state: { content: '<post text>' }, questions: E.buildQuestions([E.slopRuleFromConfig(config)]) }
+      post: { state: { content: '<post text>' }, questions: E.buildSlopQuestions(E.slopRuleFromConfig(config)) }
     }, null, 2);
     renderRules();
     renderCommentFilters();
