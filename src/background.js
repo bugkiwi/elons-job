@@ -215,7 +215,7 @@ importScripts('shared/core.js');
     const existing = queue.get(key);
     if (existing) return existing;
     const fingerprint = await E.rulesFingerprint(rules);
-    const questions = E.buildSlopQuestions(slopRule);
+    const questions = E.buildQuestions(rules);
     const client = new TypeSafeClient(config.apiEndpoint, config.model);
     const queued = queue.enqueue(key, async () => {
       const reserved = await reserveRequest(config.dailyLimit);
@@ -261,7 +261,7 @@ importScripts('shared/core.js');
     const existing = queue.get(key);
     if (existing) return existing;
     const fingerprint = await E.rulesFingerprint(rules);
-    const questions = E.buildQuestions(rules);
+    const questions = E.buildSlopQuestions(slopRule);
     const client = new TypeSafeClient(config.apiEndpoint, config.model);
     const queued = queue.enqueue(key, async () => {
       const reserved = await reserveRequest(config.dailyLimit);
